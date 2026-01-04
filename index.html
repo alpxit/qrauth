@@ -14,6 +14,13 @@
   <script src="frw/qr-scanner.legacy.min.js"></script>
   <script src="frw/totp.js"></script>
   <script src="qrauth.js"></script>
+  <style>
+    .bg-success-highlight {background-color: #00ff00;}
+    .text-success-highlight {color: #00ff00;}
+    #selHstSrvDst li {
+        font-size: small;
+    }
+  </style>
   <script>
 /*    if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js')
@@ -28,45 +35,46 @@
   <div class="progress mb-1" role="progressbar" aria-label="Session expiration time" style="height: 0.5em">
     <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width: 0"></div>
   </div>
-
+  <form action="#" method="post">
   <div id="cardArea" class="card">
-    <div class="card-body m-0 p-0 ms-1 me-1">
-      <label for="inpKeySource" class="form-label m-0 p-0">
-        <small style="font-size: x-small" class="ps-1">Sources takes from scanned qr code</small>
+    <div class="card-body m-0 p-0 ms-2 me-2">
+      <label for="inpKeyDestination" class="form-label m-0 p-0">
+        <small style="font-size: x-small">Sources takes from scanned qr code</small>
       </label>
       <br>
       <div class="input-group input-group-sm" role="group">
-        <input id="inpKeySource" type="text" class="form-control ps-2 pe-2" placeholder="host/source/owner">
-        <button class="btn btn-sm btn-outline-secondary dropdown-toggle"
+        <input id="inpKeyDestination" type="text" class="form-control ps-2 pe-2" name="username" autocomplete="username"
+               placeholder="host/service/destination" style="font-size: small">
+        <button class="btn btn-outline-secondary d-none" id="btnClearKeyDestination">&#10060;</button>
+        <button id="btnKeyDestList" class="btn btn-sm btn-outline-secondary dropdown-toggle"
                 type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
-        <ul id="selHstSrvSrc" class="dropdown-menu">
-          <li><a class="dropdown-item" href="#">1</a></li>
-          <li><a class="dropdown-item" href="#">2</a></li>
+        <ul id="selHstSrvDst" class="dropdown-menu">
+          <li><a class="dropdown-item" href="#">host_name/service_name/destination_name</a></li>
         </ul>
       </div>
       <label for="inpCurrentPassword" class="form-label m-0 p-0 d-inline-block w-100">
-        <small style="font-size: x-small" class="ps-1">The current valid password key</small>
+        <small style="font-size: x-small">The current valid password key</small>
       </label>
       <br>
       <div class="input-group input-group-sm">
-        <button class="btn btn-outline-secondary d-none" id="btnRevertPreviousPassword">&olarr;</button>
-        <input id="inpCurrentPassword" type="password" class="form-control"
+        <input id="inpCurrentPassword" type="password" class="form-control" name="password" autocomplete="current-password"
                aria-label="Enter the current password key"/>
-        <button class="btn btn-outline-secondary bg-black d-none" id="labelOTPcode" data-bs-target="#inpCurrentPassword"
-                style="color: #5aff00">123456</button>
+        <button class="btn btn-outline-secondary text-success-highlight bg-black d-none" id="labelOTPcode" data-bs-target="#inpCurrentPassword"></button>
+        <button class="btn btn-outline-secondary d-none" id="btnClearPassword">&#10060;</button>
+        <button class="btn btn-outline-secondary d-none" id="btnRevertPreviousPassword">&#8634;</button>
         <button class="btn btn-outline-secondary" id="btnShowCurrentPassword" data-bs-target="#inpCurrentPassword">&#x1F441;</button>
       </div>
       <label for="inpNewPassword" class="form-label mb-0">
-        <small style="font-size: x-small" class="ps-1">Change password to new</small>
+        <small style="font-size: x-small">Change password to new <i id="lblNewPasswordsLength"></i></small>
       </label>
       <br>
       <div class="input-group input-group-sm mb-3">
-        <button class="btn btn-outline-secondary" id="btnGenerateNewPassword">&#127920;</button>
+        <button class="btn btn-outline-secondary" id="btnGenerateNewPassword">&#127922;</button>
         <input id="inpNewPassword" type="password" class="form-control"
                aria-label="Enter a new password key"/>
-        <button class="btn btn-outline-secondary" id="btnClearNewLuksSecret">&#10060;</button>
+        <button class="btn btn-outline-secondary d-none" id="btnClearNewPassword">&#10060;</button>
+        <button class="btn btn-outline-secondary d-none" type="submit" id="btnSaveNewPassword">&#128190;</button>
         <button class="btn btn-outline-secondary" id="btnShowNewPassword" data-bs-target="#inpNewPassword">&#x1F441;</button>
-        <button class="btn btn-outline-secondary" id="btnSaveNewPassword">&#128190;</button>
       </div>
       <button id="btnScanSessionPubkey" type="button" class="btn btn-lg btn-secondary mb-3 pe-2 ps-2 ms-2" style="width: 6em;">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi float-start" viewBox="0 0 16 16">
@@ -77,11 +85,12 @@
           <path d="M12 9h2V8h-2z"/>
         </svg>
       </button>
-      <small id="lblScanQrCode" style="font-size: x-small; position: absolute; width: 6em; left: 6.2em; margin-top: 0.8em; line-height: 1.1em">
-        make scan public key QR code...
+      <small id="lblScanQrCode" class="text-black"
+             style="font-size: x-small; position: absolute; width: 6em; left: 6.2em; margin-top: 0.8em; line-height: 1.1em">
+        make scan public key<br>QR code...
       </small>
-      <button id="btnShowQrCode" type="button" class="btn btn-lg btn-secondary mb-3 pe-2 ps-2 me-2 float-end bi-qr-code" style="width: 6em;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi float-end" viewBox="0 0 16 16">
+      <button id="btnShowQrCode" type="submit" class="btn btn-lg btn-secondary mb-3 pe-2 ps-2 me-2 float-end bi-qr-code" style="width: 6em;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="black" class="bi float-end" viewBox="0 0 16 16">
           <path d="M2 2h2v2H2z"/>
           <path d="M6 0v6H0V0zM5 1H1v4h4zM4 12H2v2h2z"/>
           <path d="M6 10v6H0v-6zm-5 1v4h4v-4zm11-9h2v2h-2z"/>
@@ -94,26 +103,29 @@
       <small id="lblQrShow" class="d-none" style="font-size: x-small; position: absolute; width: 6.2em; right: 6.2em; margin-top: 0.8em; line-height: 1.1em; text-align: right">
         show TOTP QR code for the passkey</small>
       <div class="float-end m-0 p-0">
-          <div class="col-1 m-0 p-0">
+          <div class="col-sm-1 m-0 p-0">
             <button id="btnQrChunksPlus" class="btn btn-sm btn-secondary m-0 pb-0 pt-0 pe-1 ps-1" data-bs-target="+">&plus;</button>
             <button id="btnQrChunksMinus" class="btn btn-sm btn-secondary m-0 pb-0 pt-0 pe-1 ps-1" data-bs-target="-">&minus;</button>
           </div>
       </div>
     </div>
   </div>
-
+  </form>
   <video id="qrCodeScannerVideo" class="w-100 d-none p-3"></video>
   <div id="qrCodeImgArea" class="bg-light m-0 pt-4 pb-4 d-none" style="padding-left: 20px"></div>
 
   <div class="form-check form-switch mt-1 small float-sm-start">
     <input class="form-check-input" type="checkbox" role="switch" id="switcherNetworkMode" disabled>
-    <label class="form-check-label small" for="switcherNetworkMode">Network mode</label>
+    <label class="form-check-label" for="switcherNetworkMode"
+           style="font-size: xx-small; line-height: 0.9em; position: relative; top: 0.3em">Network<br>mode</label>
   </div>
   <div class="input-group input-group-sm p-0 m-0 mt-1 w-auto float-end">
+    <button class="btn p-0 m-0 ps-1 pe-1 btn-outline-secondary" type="button" style="font-size: x-small"
+            id="btnShowHelp">WhatThe?</button>
     <input type="text" class="form-control p-0 m-0 ps-2 pe-2"
            style="font-weight: lighter; font-size: x-small; width: 10em; text-align: end"
-           value="v.1.1.2 (20260103)" id="labelVersion" aria-describedby="btnUpdateVersion" aria-label="version">
-    <button class="btn btn-secondary p-0 m-0 ps-1 pe-1" type="button" style="height: 1.5em"
+           value="v.1.1.3 (20260104)" id="labelVersion" aria-describedby="btnUpdateVersion" aria-label="version">
+    <button class="btn btn-secondary p-0 m-0 ps-1 pe-1" type="button" style="height: 1.5em; color: black"
             id="btnUpdateVersion">&#10227;</button>
   </div>
 

@@ -27,9 +27,9 @@ TOTP6 = {
     });
   },
   generatePassword: function(len = 16) {
-    const base32 = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    const base = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
     let key = '';
-    for (let i=1; i <= len; i++) key += base32[Math.floor(Math.random()*62)];
+    for (let i=1; i <= len; i++) key += base[Math.floor(Math.random()*base.length)];
     return key;
   },
   generateBase32key: function(len = 32) {
