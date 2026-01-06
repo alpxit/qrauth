@@ -16,7 +16,7 @@ let selectedHSD = undefined;
 
 function prepareControls() {
 
-  let colorHighlightSuccess = $('.text-success-highlight').css('color');
+  let colorHighlightSuccess = $('.bg-success-highlight').css('background-color');
   let progressBar = $('#progressBar');
   let btnShowCurrentPassword = $('#btnShowCurrentPassword');
   let btnShowNewPassword = $('#btnShowNewPassword');
@@ -36,6 +36,10 @@ function prepareControls() {
   let btnShowQrCode = $('#btnShowQrCode');
   let btnKeyDestList = $('#btnKeyDestList');
   let selHSD = $('#selHstSrvDst');
+  let settingsArea = $('#settingsArea');
+  let btnSettings = $('#btnSettings');
+  let btnShowHelp = $('#btnShowHelp');
+  let whatTheArea = $('#whatTheArea');
   let hsdHtmlTemplate = '<li id="#id"><a class="dropdown-item" href="#">#html</a></li>';
 
   selHSD.html('');
@@ -208,6 +212,10 @@ function prepareControls() {
   }
   function btnShowAction() {
     if (event) event.preventDefault();
+    settingsArea.addClass('d-none');
+    btnSettings.removeClass('bg-primary');
+    whatTheArea.addClass('d-none');
+    btnShowHelp.removeClass('bg-primary');
     if (lblQrShow.hasClass('d-none') && lblQrCreate.hasClass('d-none')) {
       inpKeyDest.addClass('bg-danger');
       setTimeout(function () {
@@ -274,7 +282,8 @@ function prepareControls() {
   async function qrScanned(resp) {
     let arr = resp.data.split('/');
     let obj = {qrcCodeFragment: arr[0], hostName: arr[1], serviceName: arr[2], destName: arr[3], pubkey: arr[4]};
-    inpKeyDest.val(obj.hostName + '/' + obj.serviceName + '/' + obj.destName);
+    let path = obj.hostName + '/' + obj.serviceName + '/' + obj.destName;
+    inpKeyDest.val(path);
     scanner.stop();
     $(qrCodeArea).html('');
     $(elQrCodeVideo).addClass('d-none');
@@ -284,9 +293,10 @@ function prepareControls() {
       objHSD[obj.hostName][obj.serviceName] = {};
     if (!objHSD[obj.hostName][obj.serviceName][obj.destName])
       objHSD[obj.hostName][obj.serviceName][obj.destName] = {};
-    let hsd = objHSD[obj.hostName][obj.serviceName][obj.destName];
-    hsd['publicKey'] = obj.pubkey;
-    fillPasswordInputs(hsd);
+    selectedHSD = objHSD[obj.hostName][obj.serviceName][obj.destName];
+    selectedHSD['path'] = path;
+    selectedHSD['publicKey'] = obj.pubkey;
+    fillPasswordInputs(selectedHSD);
     btnShowQrCode.find('svg').attr('fill', 'yellow');
     btnScanSessionPubkey.find('svg').attr('fill', 'yellow');
     isQrCodeScannedFlag = 2;
@@ -302,8 +312,9 @@ function prepareControls() {
   function showAnimatedQRcode() {
     let w = $('#mainContainer').width();
     let arr = inpKeyDest.val().split('/');
-    let obj = {hostName: arr[0], serviceName: arr[1], destName: arr[2]};
-    let hsd = objHSD[obj.hostName][obj.serviceName][obj.destName];
+    let hsd = selectedHSD;
+    let isNewDest = (!hsd['currentKey'] || inpKeyDest.val() !== selectedHSD.path);
+
     let e= new age.Encrypter();
     e.addRecipient(hsd.publicKey);
     let sendData = inpCurrentPassword.val();
@@ -312,9 +323,9 @@ function prepareControls() {
     e.encrypt(sendData).then(
       encryptedData => {
         $(qrCodeArea).removeClass('d-none');
-        if (!hsd['currentKey'] || hsd['currentKey'] !== hsd['previousKey'])
-          hsd['previousKey'] = hsd['currentKey'];
         hsd['currentKey'] = inpCurrentPassword.val();
+        if (hsd['currentKey'] && hsd['currentKey'] !== hsd['previousKey'])
+          hsd['previousKey'] = hsd['currentKey'];
         if (inpNewPassword.val() !== '') {
           btnSaveNewPassword.addClass('bg-danger');
           btnSaveNewPassword.removeClass('d-none');
@@ -324,8 +335,9 @@ function prepareControls() {
         }
         delete hsd.publicKey;
         localStorage[lsHSD] = JSON.stringify(objHSD);
-        let dest = obj.hostName+'/'+obj.serviceName+'/'+obj.destName;
-        selHSD.append(hsdHtmlTemplate.replace('#id', dest.replaceAll('/','_')).replace('#html',dest));
+        let dest = selectedHSD.path;
+        if (isNewDest)
+          selHSD.append(hsdHtmlTemplate.replace('#id', dest.replaceAll('/','_')).replace('#html',dest));
         const data = encryptedData.toBase64();
         let datalen = data.length;
         let numOfChunks = parseInt(localStorage[lsQrChunksQuantity], 10);
@@ -368,7 +380,7 @@ function prepareControls() {
           if (inpNewPassword.val() !== '' && qrAnimationTimeout % 4 === 0)
             btnSaveNewPassword[btnSaveNewPassword.hasClass('bg-danger') ? 'removeClass' : 'addClass'] ('bg-danger');
           $(qrImgPool[activeQrImgIdx++]).addClass('d-none');
-          $(qrImgPool[activeQrImgIdx++]).addClass('d-none');
+          $(qrImgPool[activeQrImgIdx++]).addClass('d-none'); // it is not repeated of prev line!
           if (activeQrImgIdx > qrImgPool.length-1)
             activeQrImgIdx = 0;
           $(qrImgPool[activeQrImgIdx]).removeClass('d-none');
@@ -401,6 +413,10 @@ function prepareControls() {
     lblQrShow.addClass('d-none');
     if (!scanner)
       initScanner();
+    settingsArea.addClass('d-none');
+    btnSettings.removeClass('bg-primary');
+    whatTheArea.addClass('d-none');
+    btnShowHelp.removeClass('bg-primary');
     scanner.start().then(() => {});
     /*if (inpCurrentPassword.val() !== '') {
     } else {
@@ -413,26 +429,45 @@ function prepareControls() {
   let btnQrChunksPlus = $('#btnQrChunksPlus');
   let btnQrChunksMinus = $('#btnQrChunksMinus');
   let qrChunksQuantity = $('#qrChunksQuantity');
+  let lblQrChunksNumber = $('#lblQrChunksNumber');
+  let inpQrChunksRange = $('#inpQrChunksRange');
   if (!localStorage[lsQrChunksQuantity])
     localStorage[lsQrChunksQuantity] = 6;
   qrChunksQuantity.html(localStorage[lsQrChunksQuantity]);
+  lblQrChunksNumber.html(localStorage[lsQrChunksQuantity]);
   function changeQrNumChunks() {
     if (event) event.preventDefault();
-    if (lblQrCreate.hasClass('d-none'))
-      return;
     let addsub = $(this).attr('data-bs-target') === '+' ? +1 : -1;
     let newval = parseInt(localStorage[lsQrChunksQuantity]) + addsub;
     if (newval > 1 && newval <= 62) {
+      inpQrChunksRange.val(newval);
       localStorage[lsQrChunksQuantity] = newval;
       qrChunksQuantity.html(localStorage[lsQrChunksQuantity]);
+      lblQrChunksNumber.html(localStorage[lsQrChunksQuantity]);
     }
   }
   btnQrChunksPlus.click(changeQrNumChunks);
-  btnQrChunksMinus.click(changeQrNumChunks)
+  btnQrChunksMinus.click(changeQrNumChunks);
+  inpQrChunksRange.on('input', function () {
+    localStorage[lsQrChunksQuantity] = $(this).val();
+    qrChunksQuantity.html(localStorage[lsQrChunksQuantity]);
+    lblQrChunksNumber.html(localStorage[lsQrChunksQuantity]);
+  });
 
   btnScanSessionPubkey.click(scanQRcode);
   lblScanQrCode.click(scanQRcode);
   $('#btnScanSessionPubkey4pwd').click(scanQRcode);
+
+  function showHideArea() {
+    if (event) event.preventDefault();
+    let the = $(this);
+    let tgtEl = $(the.attr('data-bs-target'));
+    var isHidden = !tgtEl.hasClass('d-none');
+    the[ isHidden ? 'removeClass' : 'addClass' ]('bg-primary');
+    tgtEl[ isHidden ? 'addClass' : 'removeClass' ]('d-none');
+  }
+  btnSettings.click(showHideArea);
+  btnShowHelp.click(showHideArea);
 
   $('#btnGenerateNewPassword').click(function () {
     event.preventDefault();

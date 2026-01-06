@@ -15,7 +15,7 @@
   <script src="frw/totp.js"></script>
   <script src="qrauth.js"></script>
   <style>
-    .bg-success-highlight {background-color: #00ff00;}
+    .bg-success-highlight {background-color: rgb(0, 255, 0, 0.55);}
     .text-success-highlight {color: #00ff00;}
     #selHstSrvDst li {
         font-size: small;
@@ -31,7 +31,7 @@
 </head>
 <body data-bs-theme="dark" style="width: 21em">
 <div id="mainContainer" class="container m-0 p-1">
-
+  <div class="d-none bg-success-highlight"></div>
   <div class="progress mb-1" role="progressbar" aria-label="Session expiration time" style="height: 0.5em">
     <div id="progressBar" class="progress-bar progress-bar-striped progress-bar-animated bg-success" style="width: 0"></div>
   </div>
@@ -39,12 +39,12 @@
   <div id="cardArea" class="card">
     <div class="card-body m-0 p-0 ms-2 me-2">
       <label for="inpKeyDestination" class="form-label m-0 p-0">
-        <small style="font-size: x-small">Sources takes from scanned qr code</small>
+        <small style="font-size: x-small">Destination (obtain from a scanned QR code)</small>
       </label>
       <br>
       <div class="input-group input-group-sm" role="group">
         <input id="inpKeyDestination" type="text" class="form-control ps-2 pe-2" name="username" autocomplete="username"
-               placeholder="host/service/destination" style="font-size: small">
+               placeholder="hostName/serviceName/destinationName" style="font-size: small">
         <button class="btn btn-outline-secondary d-none" id="btnClearKeyDestination">&#10060;</button>
         <button id="btnKeyDestList" class="btn btn-sm btn-outline-secondary dropdown-toggle"
                 type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
@@ -53,7 +53,7 @@
         </ul>
       </div>
       <label for="inpCurrentPassword" class="form-label m-0 p-0 d-inline-block w-100">
-        <small style="font-size: x-small">The current valid password key</small>
+        <small style="font-size: x-small">The current valid password key for the destination</small>
       </label>
       <br>
       <div class="input-group input-group-sm">
@@ -65,7 +65,7 @@
         <button class="btn btn-outline-secondary" id="btnShowCurrentPassword" data-bs-target="#inpCurrentPassword">&#x1F441;</button>
       </div>
       <label for="inpNewPassword" class="form-label mb-0">
-        <small style="font-size: x-small">Change password to new <i id="lblNewPasswordsLength"></i></small>
+        <small style="font-size: x-small">Change the current password to a new <i id="lblNewPasswordsLength"></i></small>
       </label>
       <br>
       <div class="input-group input-group-sm mb-3">
@@ -102,15 +102,67 @@
         ...then start playing ~<b id="qrChunksQuantity">6</b><br>qr fragments</small>
       <small id="lblQrShow" class="d-none" style="font-size: x-small; position: absolute; width: 6.2em; right: 6.2em; margin-top: 0.8em; line-height: 1.1em; text-align: right">
         show TOTP QR code for the passkey</small>
-      <div class="float-end m-0 p-0">
-          <div class="col-sm-1 m-0 p-0">
-            <button id="btnQrChunksPlus" class="btn btn-sm btn-secondary m-0 pb-0 pt-0 pe-1 ps-1" data-bs-target="+">&plus;</button>
-            <button id="btnQrChunksMinus" class="btn btn-sm btn-secondary m-0 pb-0 pt-0 pe-1 ps-1" data-bs-target="-">&minus;</button>
-          </div>
-      </div>
+      <button id="btnSettings" class="btn btn-sm btn-outline-secondary mb-3 ms-2 p-0 pe-2 ps-2"
+              data-bs-target="#settingsArea" style="font-size: larger">&equiv;</button>
     </div>
   </div>
   </form>
+
+  <div id="whatTheArea" class="d-none mt-1">
+    <div class="card">
+      <div class="card-body m-0 p-2 pt-1" style="font-size: x-small">
+        Brief description.<br>
+        This interface is designed to support scripts with a secure key (passphrase) transfer protocol using QR codes.<br>
+        <br>
+        Key transfer interaction flowchart.<br>
+        1. The destination device must generate a QR code containing the public encryption key and some metadata.<br>
+        2. Run and scan this QR code. Once you receive the destination path, enter the current authorization key/passphrase. You can also set or generate a new password using the button to change the current one.<br>
+        3. Clicking the "Show QR code" button will generate a series of sequential QR codes, which must be shown to the active camera of the destination device.<br>
+        <br>
+        Data exchange via QR codes is encrypted with a cryptographically strong algorithm. Details and source code can be found on the project page.
+      </div>
+    </div>
+  </div>
+  <div id="settingsArea" class="d-none mt-1">
+    <div class="card">
+      <div class="card-body m-0 p-2 pt-1">
+        <div class="row">
+          <label for="inpQrChunksRange" class="form-label mb-0 mt-2" style="font-size: x-small">
+            Number of transmitting QR parts: <b id="lblQrChunksNumber">6</b>
+            <span class="float-end me-5 pe-4">[1..62/1]</span>
+          </label>
+          <div class="d-flex">
+            <input id="inpQrChunksRange" type="range" class="form-range me-2" min="1" max="62" value="6">
+            <button id="btnQrChunksMinus" class="btn btn-sm btn-primary m-0 me-2 pb-0 pt-0 pe-2 ps-2" data-bs-target="-">&minus;</button>
+            <button id="btnQrChunksPlus" class="btn btn-sm btn-primary m-0 pb-0 pt-0 pe-2 ps-2" data-bs-target="+">&plus;</button>
+          </div>
+        </div>
+        <div class="row">
+          <label for="inpQrChunkTime" class="form-label mb-0 mt-2" style="font-size: x-small">
+            Display time per QR part: <b id="lblQrChunkTime">250 ms</b>
+            <span class="float-end me-5 pe-4">[50..950/50]</span>
+          </label>
+          <div class="d-flex">
+            <input id="inpQrChunkTime" type="range" class="form-range me-2" min="50" max="1000" step="50" value="250" disabled>
+            <button id="btnQrChunkTimeMinus" class="btn btn-sm btn-primary m-0 me-2 pb-0 pt-0 pe-2 ps-2" data-bs-target="-">&minus;</button>
+            <button id="btnQrChunkTimePlus" class="btn btn-sm btn-primary m-0 pb-0 pt-0 pe-2 ps-2" data-bs-target="+">&plus;</button>
+          </div>
+        </div>
+        <div class="row mt-3 ms-0">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="switcherAutoGenNewPassword" disabled>
+            <label class="form-check-label" for="switcherAutoGenNewPassword"
+                   style="font-size: x-small; line-height: 1.2em; position: relative; top: 0.1em">
+              Change the current password to a new<br>random one in each session. (<b id="lblAutoRandomPasswordLength">16</b> chars)</label>
+            <div class="float-end">
+            <button id="btnAutoRandomPasswordLengthMinus" class="btn btn-sm btn-primary m-0 me-1 pb-0 pt-0 pe-2 ps-2" data-bs-target="-">&minus;</button>
+            <button id="btnAutoRandomPasswordLengthPlus" class="btn btn-sm btn-primary m-0 pb-0 pt-0 pe-2 ps-2" data-bs-target="+">&plus;</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   <video id="qrCodeScannerVideo" class="w-100 d-none p-3"></video>
   <div id="qrCodeImgArea" class="bg-light m-0 pt-4 pb-4 d-none" style="padding-left: 20px"></div>
 
@@ -120,11 +172,11 @@
            style="font-size: xx-small; line-height: 0.9em; position: relative; top: 0.3em">Network<br>mode</label>
   </div>
   <div class="input-group input-group-sm p-0 m-0 mt-1 w-auto float-end">
-    <button class="btn p-0 m-0 ps-1 pe-1 btn-outline-secondary" type="button" style="font-size: x-small"
+    <button class="btn p-0 m-0 ps-1 pe-1 btn-outline-secondary" type="button" style="font-size: x-small" data-bs-target="#whatTheArea"
             id="btnShowHelp">WhatThe?</button>
     <input type="text" class="form-control p-0 m-0 ps-2 pe-2"
            style="font-weight: lighter; font-size: x-small; width: 10em; text-align: end"
-           value="v.1.1.3 (20260104)" id="labelVersion" aria-describedby="btnUpdateVersion" aria-label="version">
+           value="v.1.1.4 (20260106)" id="labelVersion" aria-describedby="btnUpdateVersion" aria-label="version">
     <button class="btn btn-secondary p-0 m-0 ps-1 pe-1" type="button" style="height: 1.5em; color: black"
             id="btnUpdateVersion">&#10227;</button>
   </div>
