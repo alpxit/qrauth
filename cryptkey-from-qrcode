@@ -11,6 +11,15 @@ TTY=/dev/tty0
 #TTY=/dev/stdout
 OTPkey="TOTPKEY"
 
+# workaround because of changing passsword for LUKS disk not working properly inner this script
+LUKSPASSCHANGED_KEYRING_ID=`keyctl search @u user "LUKSPASSCHANGED" 2>/dev/null`
+if [ ! -z "$LUKSPASSCHANGED_KEYRING_ID" ]; then
+  keyctl pipe $LUKSPASSCHANGED_KEYRING_ID
+  keyctl unlink $LUKSPASSCHANGED_KEYRING_ID >$TTY
+  exit 0
+fi
+
+
 #KEYRING_ID=`keyctl newring my_session_keyring @s`
 #keyctl add user $PUBKEY "$SECKEY" "$KEYRING_ID"
 #age-keygen 2>&1 | tail -2 | sed 's/^.*key: //' | tr '\n' ' '
@@ -122,13 +131,9 @@ do
           if [ -z "$ISFAIL" ]; then
             echo "try luksRemoveKey remove old keyslote... ">$TTY
             echo -n "$LUKSKEY" | cryptsetup luksRemoveKey $CRYPTTAB_SOURCE 2>&1 >$TTY
-            echo "try reset all disk caches... ">$TTY
-	    sync >/dev/null
-	    blockdev --flushbufs $CRYPTTAB_SOURCE 2>&1 >$TTY
-	    blockdev --rereadpt $CRYPTTAB_SOURCE 2>&1 >$TTY
-	    echo 3 > /proc/sys/vm/drop_caches
-	    udevadm settle
-	    sleep 1 >/dev/null
+	    # workaround because of exit with new password is broken
+	    LUKSPASSCHANGED_KEYRING_ID=`echo -n "$NEWLUKSKEY" | keyctl padd user "LUKSPASSCHANGED" @u`
+	    keyctl setperm $LUKSPASSCHANGED_KEYRING_ID 0x3F000000 >$TTY
 
             echo " ">$TTY
             echo "LUKS key is changed to NEW !!!!!!!!">$TTY
@@ -178,10 +183,6 @@ do
         echo "LUKS key is not valid, try another...">$TTY
         echo " ">$TTY
         TIMEOUT=240
-        QRCHUNK1=""
-        QRCHUNK2=""
-        QRCHUNK3=""
-        QRCHUNK4=""
         LUKSKEY=""
       fi
     fi
@@ -209,7 +210,6 @@ if [ -z "$LUKSKEY" ]>/dev/null; then
   echo " ">$TTY
   echo "sorry, try booting next...">$TTY
 else
-
 #  blkid>$TTY
 #  echo "$CRYPTTAB_SOURCE / $CRYPTTAB_NAME" >$TTY
 

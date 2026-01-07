@@ -268,7 +268,7 @@ function prepareControls() {
     inpCurrentPassword.val(selectedHSD[doShowPrevPass ? 'previousKey' : 'currentKey']);
     inpCurrentPassword[doShowPrevPass ? 'addClass' : 'removeClass']('text-danger');
     btnClearPassword[doShowPrevPass ? 'removeClass' : 'addClass']('d-none');
-    btnRevertPreviousPassword.html(doShowPrevPass ? '&#11118;' : '&#11119;'); // 11118/8635 | 11119/8634
+    btnRevertPreviousPassword.html(doShowPrevPass ? '&#8635;' : '&#8634;'); // 11118/8635 | 11119/8634
   });
   btnClearPassword.click(function () {
     event.preventDefault();

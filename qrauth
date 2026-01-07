@@ -42,7 +42,8 @@ ffmpeg -loglevel quiet -hide_banner -y -f v4l2 -i /dev/video0 -r 4.0 -update 1 \
  -vf "extractplanes=y,crop=800:720:200:0,scale=400:360" $QRCODEPATH 2>&1 >/dev/null &
 ffpid=$!
 
-(sleep 1; /usr/bin/eog $QRCODEPATH)&
+sleep 1
+eog $QRCODEPATH >/dev/null &
 eogpid=$!
 
 #terminate() {
@@ -51,7 +52,7 @@ eogpid=$!
 #  exit 0
 #}
 #trap terminate INT TERM
-
+NEWPWDKEY=""
 BASE62="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 LEN=0
 CNTR=""
@@ -61,7 +62,7 @@ do
   inotifywait -qqe 'close' -t 3 $QRCODEPATH 2>&1 1>/dev/null
 
   QRCHUNK=`zbarimg -q --nodbus --raw $QRCODEPATH`
-  if [ ! -z "$QRCHUNK" ]; then
+  if [ ! -z "$QRCHUNK" ]>/dev/null; then
     TIMEOUT=60
     NDGTS=`echo $QRCHUNK | cut -c 1`
     NCHUNKS=`echo $QRCHUNK | cut -c 2-$((NDGTS+1))`
@@ -80,7 +81,7 @@ do
       LEN=$((LEN+1))
       echo -n "$LEN} ">$TTY
     fi
-    if [ $LEN -eq $NCHUNKS ]; then
+    if [ $LEN -eq $NCHUNKS ]>/dev/null; then
       QRDATA=""
       while [ $LEN -gt 0 ]; do
         VARCHUNK="QRCHUNK$LEN"
@@ -95,18 +96,18 @@ do
       NL="
 "
 #      echo "   PWDKEY: ==$PWDKEY==">$TTY
-      NEWPWDKEY=${PWDKEY##*$NL}
-      PWDKEY=${PWDKEY%$NL*}
+#      NEWPWDKEY=${PWDKEY##*$NL}
+#      PWDKEY=${PWDKEY%$NL*}
 #      echo "   PWDKEY: ==$PWDKEY==">$TTY
 #      echo "NEWPWDKEY: ==$NEWPWDKEY==">$TTY
-      if [ "$PWDKEY" != "$NEWPWDKEY" ]; then
+#      if [ "$PWDKEY" != "$NEWPWDKEY" ]; then
         #TODO: change password
 #        keyctl pipe $KEYRING_ID | age -d -i - $QRCODEPATH.dat | passwd
-        (sleep 3; keyctl unlink $KEYRING_ID>/dev/null)&
-        echo "\n!!! New password is set !!!\n">$TTY
-        echo -n "$NEWPWDKEY\n$PWDKEY"
-        exit 0
-      fi
+#        (sleep 3; keyctl unlink $KEYRING_ID>/dev/null)&
+#        echo "\n!!! New password is set !!!\n">$TTY
+#        echo -n "$NEWPWDKEY\n$PWDKEY"
+#        exit 0
+#      fi
 
     fi
     QRCHUNK=""
@@ -117,7 +118,7 @@ do
 done
 
 kill -3 $ffpid >/dev/null
-kill -3 $eogpid >/dev/null
+kill -9 $eogpid >/dev/null
 sleep 1 >/dev/null
 
 if [ "$TIMEOUT" -eq 0 -o -z "$PWDKEY" ]; then
@@ -126,11 +127,10 @@ if [ "$TIMEOUT" -eq 0 -o -z "$PWDKEY" ]; then
   keyctl unlink $KEYRING_ID>/dev/null
   exit 0
 else
-
   rm $QRCODEPATH.dat $QRCODEPATH
   (sleep 3; keyctl unlink $KEYRING_ID>/dev/null)&
 #  keyctl pipe $KEYRING_ID | age -d -i - $QRCODEPATH.dat | sudo 2>/dev/null 1>/dev/null -S gnome-terminal --tab -- bash -c "sudo -i"
-  echo "\n return the password ...\n">$TTY
+  echo "\nreturn the password(s) ...\n">$TTY
   echo "$PWDKEY"
   exit 0
 fi
