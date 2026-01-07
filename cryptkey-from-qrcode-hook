@@ -14,11 +14,8 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
-
 #copy_exec /usr/bin/strace
 
-#copy_exec /usr/bin/realpath
-#copy_exec /usr/bin/head
 copy_exec /usr/bin/bc
 copy_exec /usr/bin/sha256sum
 copy_exec /usr/bin/keyctl
@@ -37,6 +34,5 @@ copy_exec /usr/bin/age
 copy_exec /usr/bin/age-keygen
 copy_exec /etc/hostname
 copy_exec /usr/local/sbin/cryptkey-from-qrcode   /usr/local/sbin/cryptkey-from-qrcode
-
 
 exit 0

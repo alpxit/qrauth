@@ -1,6 +1,6 @@
 #!/bin/sh
 # location path: /usr/local/sbin
-# in /etc/rc.local must execute keyctl link $(keyctl show @us | grep OTP | awk '{print $1}') @s
+# in /etc/rc.local must execute keyctl link $(keyctl show @us | grep TOTPKEY | awk '{print $1}') @s
 
 #set +e
 

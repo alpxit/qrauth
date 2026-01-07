@@ -1,6 +1,17 @@
 QR-Auth: Passwordless LUKS Authorization via PWA
+
 (still developing yet, but working already)
-A secure, keyboard-free authentication framework for Linux systems, designed to eliminate the threat of hardware keyloggers.
+A secure, keyboard-free authentication framework for Linux systems, designed to eliminate the threat of hardware and visual keyloggers.
+To test this system:
+1. open the website https://alpxit.github.io/qrauth/ on your smartphone (you can install it as a web app to use it offline),
+2. run one of commands in linux console:
+qrauth | sudo -S -v && sudo -i    # to open root
+qrauth | passwd                   # to change password
+3. then start scanning on the app page,
+4. scan the QR code from the console, 
+5. click the "Show QR code" button, 
+6. and show it to the camera of the device on which you ran the script...
+!! Please only use LUKS QR authentication if you know and understand how to recover your kernel boot in case of problems!!
 
 💡 The Concept
 
