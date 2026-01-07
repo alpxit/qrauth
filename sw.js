@@ -4,6 +4,7 @@ const ASSETS = [
   './index.html',
   './manifest.json',
   './favicon.svg',
+  './icon.svg',
   "./frw/bootstrap.min.css",
   "./frw/jquery.min.js",
   "./frw/bootstrap.bundle.min.js",
