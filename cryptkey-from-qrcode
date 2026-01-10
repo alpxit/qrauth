@@ -38,7 +38,7 @@ echo "$PUBKEY">$TTY
 
 echo " ">$TTY
 qrencode -t ANSI256 "$PUBKEY" 2>&1 >$TTY
-echo "Please scan the public key QRcode and return in the webcam the enrypted password...">$TTY
+echo "Please scan the public key QRcode...">$TTY
 echo "and now 62 seconds of countdown timeout...">$TTY
 
 BASE62="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"

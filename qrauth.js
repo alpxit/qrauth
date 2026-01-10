@@ -133,7 +133,6 @@ function prepareControls() {
   if (localStorage[lsSelectedHSD])
     setTimeout(function () {
       let selectedHSD = selHSD.find('#'+localStorage[lsSelectedHSD]);
-      console.log(selectedHSD.length);
       if (selectedHSD.length) $(selectedHSD[0]).find('a').click();
       else localStorage.removeItem(lsSelectedHSD);
     }, 200);
@@ -291,7 +290,14 @@ function prepareControls() {
   let isQrCodeScannedFlag = 0;
   async function qrScanned(resp) {
     let arr = resp.data.split('/');
-    let obj = {qrcCodeFragment: arr[0], hostName: arr[1], serviceName: arr[2], destName: arr[3], pubkey: arr[4]};
+    let obj = {
+      qrcCodeFragment: arr[0],
+      hostName: arr[1],
+      serviceName: arr[2],
+      destName: arr[3],
+      usbIP: arr[4],
+      pubkey: arr[5]
+    };
     let path = obj.hostName + '/' + obj.serviceName + '/' + obj.destName;
     inpKeyDest.val(path);
     scanner.stop();
@@ -305,6 +311,7 @@ function prepareControls() {
       objHSD[obj.hostName][obj.serviceName][obj.destName] = {};
     selectedHSD = objHSD[obj.hostName][obj.serviceName][obj.destName];
     selectedHSD['path'] = path;
+    selectedHSD['usbIP'] = obj.usbIP;
     selectedHSD['publicKey'] = obj.pubkey;
     fillPasswordInputs(selectedHSD);
     btnShowQrCode.find('svg').attr('fill', 'yellow');
@@ -349,6 +356,14 @@ function prepareControls() {
         if (isNewDest)
           selHSD.append(hsdHtmlTemplate.replace('#id', dest.replaceAll('/','_')).replace('#html',dest));
         const data = encryptedData.toBase64();
+        if (selectedHSD.usbIP !== '0.0.0.0') {
+          let requrl = 'http://'+selectedHSD.usbIP+':54321/&'+data;
+          console.log(requrl);
+          fetch(requrl,{mode: 'no-cors'}).then(response => {
+            if (response.type === 'opaque')
+              qrAnimationTimeout = 1;
+          });
+        }
         let datalen = data.length;
         let numOfChunks = parseInt(localStorage[lsQrChunksQuantity], 10);
         let numOfChunksDigits = (numOfChunks > 9) ? 2 : 1;
@@ -428,6 +443,10 @@ function prepareControls() {
     whatTheArea.addClass('d-none');
     btnShowHelp.removeClass('bg-primary');
     scanner.start().then(() => {});
+    setTimeout(function () { // stop scanner cam in 20s of idle
+      scanner.stop();
+      $(elQrCodeVideo).addClass('d-none');
+    }, 20000);
     /*if (inpCurrentPassword.val() !== '') {
     } else {
       inpCurrentPassword.addClass('bg-danger');
@@ -519,6 +538,7 @@ function prepareControls() {
 
   let b = $('body');
   b.css('zoom', Math.floor(window.innerWidth*100/b.width()) + '%');
+
 }
 
 $(document).ready(prepareControls);

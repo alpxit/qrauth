@@ -9,6 +9,7 @@
 TTY=/dev/stderr
 #TTY=/dev/null
 
+SELFPID=$$
 SESSPUBKEY="SESSPUBKEY"
 
 KEYRING_ID=`keyctl search @u user "$SESSPUBKEY" 2>/dev/null`
@@ -19,33 +20,76 @@ fi
 KEYRING_ID=`age-keygen 2>/dev/null | grep AGE-SECRET-KEY | keyctl padd user "$SESSPUBKEY" @u`
 PUBKEY=`keyctl pipe $KEYRING_ID | age-keygen -y`
 
+USBIFCIP="0.0.0.0"
+for interface in /sys/class/net/*; do
+  ifc=$(readlink "$interface")
+  if [[ "$ifc" == */usb* ]] >$TTY; then
+    ifcn=${interface#/sys/class/net/}
+    USBIFCIP=$(ifconfig $ifcn | grep netmask | awk '{print $2}' | tr -d '\n')
+    echo "USBIFCIP: $USBIFCIP">$TTY
+  fi
+done
 
 HOSTNAME=$(hostname)
 WHOAMI=$(whoami)
 if [ -z "$HOSTNAME" ]; then
   HOSTNAME="HOSTNAME"
 fi
-PUBKEY=111/$HOSTNAME/qrauth/$WHOAMI/$PUBKEY
+PUBKEY=111/$HOSTNAME/qrauth/$WHOAMI/$USBIFCIP/$PUBKEY
 
 echo " ">$TTY
 qrencode -t ANSI256UTF8 "$PUBKEY">$TTY
-echo "Please scan public key qrcode and return enrypted password...">$TTY
+echo "Please scan public key qrcode...">$TTY
 echo "and now 62 seconds of countdown to stop(or press Ctrl+C)...">$TTY
 
+tmpfifo=/tmp/qrauth.nc.fifo
+mkfifo $tmpfifo
+(
+cat $tmpfifo | nc -l -p 54321 | grep --line-buffered GET | \
+while read -sr get >/dev/null; do
+  get=${get##*&}
+  QRDATA=${get% *}
+  echo -e "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\nAccess-Control-Allow-Origin: *\r\n\r\nOK" >$tmpfifo
+
+  tmpfn=$(mktemp)
+  echo "$QRDATA" | base64 -d >$tmpfn
+  keyctl pipe $KEYRING_ID | age -d -i - $tmpfn | keyctl pupdate $KEYRING_ID  # workaround: because breaks from this WHILE does kill all VARS
+
+  ZBARPID=$(ps -Af | grep zbarcam | grep $SELFPID | grep -v grep | awk '{print $2}')
+  if [ ! -z "$ZBARPID" ]>/dev/null; then
+    kill -2 $ZBARPID 2>&1 >/dev/null
+  fi
+  rm $tmpfn >/dev/null
+  break
+done
+rm -f $tmpfifo >/dev/null
+)>/dev/null &
+FIFOPID=$!
 
 BASE62="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
 LEN=0
 CNTR=""
 TIMEOUT=62
-SELFPID=$$
-(while [ $TIMEOUT -gt 0 ]; do sleep 1; echo "$BASE62" | cut -zc$TIMEOUT >$TTY; TIMEOUT=$((TIMEOUT-1)); done;
-keyctl unlink $KEYRING_ID>/dev/null;
-kill -2 $(ps -Af | grep zbarcam | grep $SELFPID | awk '{print $2}') 2>&1  >/dev/null)&
+(while [ -e $tmpfifo -a $TIMEOUT -gt 0 ]>/dev/null; do
+  sleep 0.1 >/dev/null
+  echo "$BASE62" | cut -zc$TIMEOUT >$TTY
+  TIMEOUT=$((TIMEOUT-1))
+ done
+ kill -2 $(ps -Af | egrep "nc -l -p 54321" | grep -v grep | awk '{print $2}') 2>&1 >/dev/null
+ kill -2 $(ps -Af | grep zbarcam | grep $SELFPID | grep -v grep | awk '{print $2}') 2>&1 >/dev/null
+ keyctl unlink $KEYRING_ID>/dev/null
+ KEYRING_ID=
+# rm $tmpfifo >/dev/null
+)2>&1 >/dev/null &
 TIMEOUTPID=$!
+#echo "TIMEOUTPID: $TIMEOUTPID"
 
 terminate() {
-  kill -9 $TIMEOUTPID 2>&1 >/dev/null
-  keyctl unlink $KEYRING_ID>/dev/null
+#  echo "." >$tmpfifo
+#  kill -2 $(ps -Af | grep zbarcam | grep $SELFPID | grep -v grep | awk '{print $2}') 2>&1 >/dev/null
+#  kill -9 $TIMEOUTPID 2>&1 >/dev/null
+#  kill -2 $(ps -Af | grep "nc -l -p 54321" | awk '{print $2}') 2>&1 >/dev/null
+#  keyctl unlink $KEYRING_ID>/dev/null
   echo ""
   exit 0
 }
@@ -84,13 +128,41 @@ while read -r QRCHUNK >/dev/null; do
     echo "$QRDATA" | base64 -d >$tmpfn
     keyctl pipe $KEYRING_ID | age -d -i - $tmpfn | keyctl pupdate $KEYRING_ID  # workaround: because breaks from this WHILE does kill all VARS
     rm $tmpfn
-    kill -2 $(ps -Af | grep zbarcam | grep $SELFPID | awk '{print $2}') 2>&1 >/dev/null
+    kill -2 $(ps -Af | grep zbarcam | grep $SELFPID | grep -v grep | awk '{print $2}') 2>&1 >/dev/null
+    echo "." >$tmpfifo
+    rm -f $tmpfifo >/dev/null
     break
   fi
 done
 
-kill -9 $TIMEOUTPID 2>&1 >/dev/null
+sleep 0.1
+#if [ -e $tmpfifo ]>/dev/null; then
+  echo "." >$tmpfifo
+  rm -f $tmpfifo >/dev/null
+#fi
+
+echo "">$TTY
+if [ ! -z $KEYRING_ID ]>/dev/null; then
+  keyctl pipe $KEYRING_ID 2>/dev/null
+  keyctl unlink $KEYRING_ID 2>&1 >/dev/null
+fi
+echo "">$TTY
+
+
+NCPID=$(ps -Af | egrep "nc -l -p 54321" | grep -v grep | awk '{print $2}')
+#echo "NCPID: $NCPID"
+if [ ! -z "$NCPID" ] >/dev/null; then
+  kill -2 $NCPID 2>&1 >/dev/null
+#  kill -2 $FIFOPID 2>&1 >/dev/null
+fi
+
+sleep 0.1
+
+TOPID=$(ps -A | grep $TIMEOUTPID)
+if [ ! -z "$TOPID" ]; then
+  kill -9 $TIMEOUTPID 2>&1 >/dev/null
+fi
+
 #echo "\nreturn the password(s) ...\n">$TTY
-keyctl pipe $KEYRING_ID
-keyctl unlink $KEYRING_ID>/dev/null
+
 exit 0

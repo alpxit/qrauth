@@ -61,7 +61,7 @@
                aria-label="Enter the current password key"/>
         <button class="btn btn-outline-secondary text-success-highlight bg-black d-none" id="labelOTPcode" data-bs-target="#inpCurrentPassword"></button>
         <button class="btn btn-outline-secondary d-none" id="btnClearPassword">&#10060;</button>
-        <button class="btn btn-outline-secondary d-none" id="btnRevertPreviousPassword">&#8634;</button>
+        <button class="btn btn-outline-secondary d-none" id="btnRevertPreviousPassword" style="font-size: x-large; line-height: 0">&#8634;</button>
         <button class="btn btn-outline-secondary" id="btnShowCurrentPassword" data-bs-target="#inpCurrentPassword">&#x1F441;</button>
       </div>
       <label for="inpNewPassword" class="form-label mb-0">
@@ -170,6 +170,9 @@
     <input class="form-check-input" type="checkbox" role="switch" id="switcherNetworkMode" disabled>
     <label class="form-check-label" for="switcherNetworkMode"
            style="font-size: xx-small; line-height: 0.9em; position: relative; top: 0.3em">Network<br>mode</label>
+  </div>
+  <div class="ms-3 small float-sm-start" style="line-height: 0.5em; position: relative; top: 0.3em">
+    <a href="intent:#Intent;action=android.settings.SETTINGS;end" style="font-size: xx-small;">do USB<br>modem</a>
   </div>
   <div class="input-group input-group-sm p-0 m-0 mt-1 w-auto float-end">
     <button class="btn p-0 m-0 ps-1 pe-1 btn-outline-secondary" type="button" style="font-size: x-small" data-bs-target="#whatTheArea"
