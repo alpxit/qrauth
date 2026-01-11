@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" class="bi bi-key-fill" viewBox="0 0 16 16">
   <rect fill="black" width="16" height="16"/>
-  <path fill="white" transform='rotate(45 5 10)' d="M3.5 11.5a3.5 3.5 0 1 1 3.163-5H14L15.5 8 14 9.5l-1-1-1 1-1-1-1 1-1-1-1 1H6.663a3.5 3.5 0 0 1-3.163 2M2.5 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
-  <path fill="yellow" transform="translate(-6.5 -2.4) scale(1.6)" d="M5.5 1.5l1 1.5 1-1.5 1 1.5 1-1.5v3h-4v-3zM5z"/>
+  <path fill="silver" transform='rotate(45 5 10) translate(-0.2 -0.1)' d="M3.5 11.5a3.5 3.5 0 1 1 3.163-5H14L15.5 8 14 9.5l-1-1-1 1-1-1-1 1-1-1-1 1H6.663a3.5 3.5 0 0 1-3.163 2M2.5 9a1 1 0 1 0 0-2 1 1 0 0 0 0 2"/>
+  <path fill="gold" transform="scale(0.8) translate(1.4 0.6)" d="M1,4 L0,1 L3,2 L5,0 L7,2 L10,1 L9,4 Z"/>
 </svg>
