@@ -39,7 +39,7 @@
   <div id="cardArea" class="card">
     <div class="card-body m-0 p-0 ms-2 me-2">
       <label for="inpKeyDestination" class="form-label m-0 p-0">
-        <small style="font-size: x-small">Destination (obtain from a scanned QR code)</small>
+        <small style="font-size: 0.7em">Destination (obtain from a scanned QR code)</small>
       </label>
       <br>
       <div class="input-group input-group-sm" role="group">
@@ -50,10 +50,15 @@
                 type="button" data-bs-toggle="dropdown" aria-expanded="false"></button>
         <ul id="selHstSrvDst" class="dropdown-menu">
           <li><a class="dropdown-item" href="#">host_name/service_name/destination_name</a></li>
+          <li><hr class="dropdown-divider"></li>
+          <li><a class="dropdown-item" href="#">Load from file...</a></li>
+          <li><a class="dropdown-item" href="#">Download from cloud...</a></li>
+          <li><a class="dropdown-item" href="#">Save to file...</a></li>
+          <li><a class="dropdown-item" href="#">Upload to cloud...</a></li>
         </ul>
       </div>
       <label for="inpCurrentPassword" class="form-label m-0 p-0 d-inline-block w-100">
-        <small style="font-size: x-small">The current valid password key for the destination</small>
+        <small style="font-size: 0.7em">The current valid password key for the destination</small>
       </label>
       <br>
       <div class="input-group input-group-sm">
@@ -65,7 +70,7 @@
         <button class="btn btn-outline-secondary" id="btnShowCurrentPassword" data-bs-target="#inpCurrentPassword">&#x1F441;</button>
       </div>
       <label for="inpNewPassword" class="form-label mb-0">
-        <small style="font-size: x-small">Change the current password to a new <i id="lblNewPasswordsLength"></i></small>
+        <small style="font-size: 0.7em">Change the current password to a new <i id="lblNewPasswordsLength"></i></small>
       </label>
       <br>
       <div class="input-group input-group-sm mb-3">
@@ -86,7 +91,7 @@
         </svg>
       </button>
       <small id="lblScanQrCode" class="text-black"
-             style="font-size: x-small; position: absolute; width: 6em; left: 6.2em; margin-top: 0.8em; line-height: 1.1em">
+             style="font-size: 0.7em; position: absolute; width: 7em; left: 5.7em; margin-top: 0.7em; line-height: 1em">
         make scan public key<br>QR code...
       </small>
       <button id="btnShowQrCode" type="submit" class="btn btn-lg btn-secondary mb-3 pe-2 ps-2 me-2 float-end bi-qr-code" style="width: 6em;">
@@ -98,10 +103,10 @@
           <path d="M7 12h1v3h4v1H7zm9 2v2h-3v-1h2v-1z"/>
         </svg>
       </button>
-      <small id="lblQrCreate" class="d-none" style="font-size: x-small; position: absolute; width: 6em; right: 6.2em; margin-top: 0.8em; line-height: 1.1em; text-align: right">
-        ...then start playing ~<b id="qrChunksQuantity">6</b><br>qr fragments</small>
-      <small id="lblQrShow" class="d-none" style="font-size: x-small; position: absolute; width: 6.2em; right: 6.2em; margin-top: 0.8em; line-height: 1.1em; text-align: right">
-        show TOTP QR code for the passkey</small>
+      <small id="lblQrCreate" class="text-black d-none" style="font-size: 0.7em; position: absolute; width: 7em; right: 5.8em; margin-top: 0.6em; line-height: 1.1em; text-align: right">
+        ...then start playing ~<b id="qrChunksQuantity">6</b><br>QR chunks</small>
+      <small id="lblQrShow" class="d-none" style="font-size: 0.7em; position: absolute; width: 7em; right: 5.8em; margin-top: 0.6em; line-height: 1.1em; text-align: right">
+        show TOTP<br>QR code for the passkey</small>
       <button id="btnSettings" class="btn btn-sm btn-outline-secondary mb-3 ms-2 p-0 pe-2 ps-2"
               data-bs-target="#settingsArea" style="font-size: larger">&equiv;</button>
     </div>
@@ -110,7 +115,7 @@
 
   <div id="whatTheArea" class="d-none mt-1">
     <div class="card">
-      <div class="card-body m-0 p-2 pt-1" style="font-size: x-small">
+      <div class="card-body m-0 p-2 pt-1" style="font-size: 0.7em">
         Brief description.<br>
         This interface is designed to support scripts with a secure key (passphrase) transfer protocol using QR codes.<br>
         <br>
@@ -127,7 +132,7 @@
     <div class="card">
       <div class="card-body m-0 p-2 pt-1">
         <div class="row">
-          <label for="inpQrChunksRange" class="form-label mb-0 mt-2" style="font-size: x-small">
+          <label for="inpQrChunksRange" class="form-label mb-0 mt-2" style="font-size: 0.7em">
             Number of transmitting QR parts: <b id="lblQrChunksNumber">6</b>
             <span class="float-end me-5 pe-4">[1..62/1]</span>
           </label>
@@ -138,7 +143,7 @@
           </div>
         </div>
         <div class="row">
-          <label for="inpQrChunkTime" class="form-label mb-0 mt-2" style="font-size: x-small">
+          <label for="inpQrChunkTime" class="form-label mb-0 mt-2" style="font-size: 0.7em">
             Display time per QR part: <b id="lblQrChunkTime">250 ms</b>
             <span class="float-end me-5 pe-4">[50..950/50]</span>
           </label>
@@ -152,7 +157,7 @@
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" role="switch" id="switcherAutoGenNewPassword" disabled>
             <label class="form-check-label" for="switcherAutoGenNewPassword"
-                   style="font-size: x-small; line-height: 1.2em; position: relative; top: 0.1em">
+                   style="font-size: 0.7em; line-height: 1.2em; position: relative; top: 0.1em">
               Change the current password to a new<br>random one in each session. (<b id="lblAutoRandomPasswordLength">16</b> chars)</label>
             <div class="float-end">
             <button id="btnAutoRandomPasswordLengthMinus" class="btn btn-sm btn-primary m-0 me-1 pb-0 pt-0 pe-2 ps-2" data-bs-target="-">&minus;</button>
@@ -169,17 +174,17 @@
   <div class="form-check form-switch mt-1 small float-sm-start">
     <input class="form-check-input" type="checkbox" role="switch" id="switcherNetworkMode" disabled>
     <label class="form-check-label" for="switcherNetworkMode"
-           style="font-size: xx-small; line-height: 0.9em; position: relative; top: 0.3em">Network<br>mode</label>
+           style="font-size: 0.7em; line-height: 0.9em; position: relative; top: 0.1em">Network<br>mode</label>
   </div>
   <div class="ms-3 small float-sm-start" style="line-height: 0.5em; position: relative; top: 0.3em">
-    <a href="intent:#Intent;action=android.settings.SETTINGS;end" style="font-size: xx-small;">do USB<br>modem</a>
+    <a class="btn-sm" href="intent:#Intent;action=android.settings.SETTINGS;end" style="text-decoration: none; font-size: 0.7em;">set USB<br>modem</a>
   </div>
   <div class="input-group input-group-sm p-0 m-0 mt-1 w-auto float-end">
-    <button class="btn p-0 m-0 ps-1 pe-1 btn-outline-secondary" type="button" style="font-size: x-small" data-bs-target="#whatTheArea"
+    <button class="btn p-0 m-0 ps-1 pe-1 btn-outline-secondary" type="button" style="font-size: 0.7em" data-bs-target="#whatTheArea"
             id="btnShowHelp">WhatThe?</button>
     <input type="text" class="form-control p-0 m-0 ps-2 pe-2"
            style="font-weight: lighter; font-size: x-small; width: 10em; text-align: end"
-           value="v.1.1.7 (20260110)" id="labelVersion" aria-describedby="btnUpdateVersion" aria-label="version">
+           value="v.1.1.8 (20260111)" id="labelVersion" aria-describedby="btnUpdateVersion" aria-label="version">
     <button class="btn btn-secondary p-0 m-0 ps-1 pe-1" type="button" style="height: 1.5em; color: black"
             id="btnUpdateVersion">&#10227;</button>
   </div>

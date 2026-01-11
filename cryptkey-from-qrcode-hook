@@ -14,10 +14,12 @@ esac
 
 . /usr/share/initramfs-tools/hook-functions
 
+# modules on lines below - just for debug only
 #copy_exec /usr/bin/strace
-copy_exec /usr/bin/tcpdump
-copy_exec /usr/bin/nc
+#copy_exec /usr/bin/tcpdump
+# lines above for debug only, will be removed or disabled
 
+copy_exec /usr/bin/nc
 copy_exec /usr/bin/bc
 copy_exec /usr/bin/sha256sum
 copy_exec /usr/bin/keyctl
@@ -26,7 +28,7 @@ copy_exec /usr/bin/base64
 #copy_exec /usr/sbin/lvdisplay
 #copy_exec /usr/sbin/vgchange
 
-copy_exec /usr/bin/zbarimg
+#copy_exec /usr/bin/zbarimg
 copy_exec /usr/bin/zbarcam
 copy_exec /usr/bin/qrencode
 copy_exec /usr/lib/x86_64-linux-gnu/ImageMagick-6.9.12/modules-Q16/coders/bmp.so

@@ -42,6 +42,7 @@ function prepareControls() {
   let btnShowHelp = $('#btnShowHelp');
   let whatTheArea = $('#whatTheArea');
   let hsdHtmlTemplate = '<li id="#id"><a class="dropdown-item" href="#">#html</a></li>';
+  let hsdHtmlTemplateBtn = '<li id="#id"><a class="dropdown-item disabled" aria-disabled="true" href="#">#html</a></li>';
 
   selHSD.html('');
   let isHSDnotEmpty = false;
@@ -63,6 +64,9 @@ function prepareControls() {
     setTimeout(function () {
       btnKeyDestList.removeClass('btn-outline-secondary bg-success-highlight');
     },500);
+    selHSD.append('<li><hr class="dropdown-divider"></li>');
+    selHSD.append(hsdHtmlTemplateBtn.replace('#id', 'actSaveToFile').replace('#html', 'Save to file'));
+    selHSD.append(hsdHtmlTemplateBtn.replace('#id', 'actLoadFromFile').replace('#html', 'Load from file'));
   }
 
   function fillPasswordInputs(hsd) {
@@ -156,9 +160,25 @@ function prepareControls() {
     TOTP6.generateSecretKey(inpCurrentPassword.val(), showInputPassword)
   });
 
-  let currentOTPsecret = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+
   let refreshOtpintervalTimer = 0;
   let refreshOtpTimeout = 0;
+  function activateProgressBar(periodSeconds, intervalSeconds, callback) {
+    progressBar.css('width', Math.floor(periodSeconds/intervalSeconds*100)+'%');
+    //if (refreshOtpTimeout) clearTimeout(refreshOtpTimeout);
+    refreshOtpTimeout = setTimeout(refreshOtp, periodSeconds * 1000);
+    if (refreshOtpintervalTimer)
+      clearInterval(refreshOtpintervalTimer);
+    refreshOtpintervalTimer = setInterval(function () {
+      if (periodSeconds-- <= 0) {
+        clearInterval(refreshOtpintervalTimer);
+        if (callback) callback();
+      }
+      progressBar.css('width', (periodSeconds > 0 ? Math.floor(periodSeconds/intervalSeconds*100) : 100) +'%');
+    },1000);
+  }
+
+  let currentOTPsecret = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
   let qrCodeArea = document.getElementById("qrCodeImgArea");
   async function refreshOtp(e, OTPsecret) {
     currentOTPsecret = OTPsecret ? OTPsecret : currentOTPsecret;
@@ -175,21 +195,12 @@ function prepareControls() {
     });
     labelOTPcode.html(qrc);
 
-    let timeout30sec = 30 - Math.floor((Date.now() / 1000) % 30);
-    progressBar.css('width', Math.floor(timeout30sec/30*100)+'%');
     if (!$(qrCodeArea).hasClass('d-none')) {
-      //if (refreshOtpTimeout) clearTimeout(refreshOtpTimeout);
-      refreshOtpTimeout = setTimeout(refreshOtp, timeout30sec * 1000);
-      if (refreshOtpintervalTimer)
-        clearInterval(refreshOtpintervalTimer);
-      refreshOtpintervalTimer = setInterval(function () {
-        if (timeout30sec-- <= 0)
-          clearInterval(refreshOtpintervalTimer);
-        progressBar.css('width', (timeout30sec > 0 ? Math.floor(timeout30sec/30*100) : 100) +'%');
-      },1000);
-    } else {
+      progressBar.removeClass('bg-warning');
+      progressBar.addClass('bg-success');
+      activateProgressBar(30 - Math.floor((Date.now() / 1000) % 30), 30, stopShowQRcode)
+    } else
       stopShowQRcode();
-    }
   }
   function resetAllControls(force) {
     btnShowQrCode.find('svg').attr('fill', 'white');
@@ -443,10 +454,13 @@ function prepareControls() {
     whatTheArea.addClass('d-none');
     btnShowHelp.removeClass('bg-primary');
     scanner.start().then(() => {});
-    setTimeout(function () { // stop scanner cam in 20s of idle
+    progressBar.removeClass('bg-success');
+    progressBar.addClass('bg-warning');
+    activateProgressBar(15, 15, function () { // stop scanner cam in 15s of inactivity
       scanner.stop();
       $(elQrCodeVideo).addClass('d-none');
-    }, 20000);
+      stopShowQRcode();
+    });
     /*if (inpCurrentPassword.val() !== '') {
     } else {
       inpCurrentPassword.addClass('bg-danger');
@@ -539,6 +553,23 @@ function prepareControls() {
   let b = $('body');
   b.css('zoom', Math.floor(window.innerWidth*100/b.width()) + '%');
 
+  $('#btnPubkeyByUSB').click(async function () {
+    /* TODO: may be next time...
+    navigator.bluetooth.requestDevice({acceptAllDevices: true})
+        .then(device => {
+          device.gatt.connect().then(server => {
+            server.getPrimaryService(0x1133).then(service => {
+              service.getCharacteristic(0x2A4D).then(characteristic => {
+                characteristic.startNotifications().addEventListener('characteristicvaluechanged',
+                    function (e) {
+                      console.log(e);
+                    });
+              })
+            })
+          })
+          //device.addEventListener('gattserverdisconnected', onDisconnected);
+        });*/
+  });
 }
 
 $(document).ready(prepareControls);
