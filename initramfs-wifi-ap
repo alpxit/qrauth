@@ -1,0 +1,33 @@
+#!/bin/sh
+# wifi ap for initfamfs (developing function)
+
+#set +e
+
+WIFIIFCIP="10.11.12.13"
+DEVNAME=$(iw list | awk '/Wiphy/ {print $2}')
+echo "DEVNAME: $DEVNAME" >$TTY
+WLAN_IFACE="wlan0"
+iw $DEVNAME interface add $WLAN_IFACE type managed addr 10:11:12:13:14:15 >$TTY
+sleep 1  >$TTY
+ip addr add $WIFIIFCIP/24 dev $WLAN_IFACE >$TTY
+
+cat <<EOF > /tmp/hostapd.conf
+interface=wlan0
+driver=nl80211
+ssid=alpxLUKSunlock
+hw_mode=g
+channel=1
+auth_algs=1
+wpa=0
+EOF
+
+hostapd /tmp/hostapd.conf >/tmp/hostapd.log &
+HOSTAPDPID=$!
+dnsmasq -u root -i wlan0 -R -e -L -8 /tmp/dnsmasq.log -l /tmp/dnsmasq.leases -x /tmp/dnsmasq.pid -F 10.11.12.1,10.11.12.11,5m -A /#/10.11.12.13 >/tmp/dnsmasq.log &
+DNSMASQPID=$!
+echo "HOSTAPDPID: $HOSTAPDPID, DNSMASQPID: $DNSMASQPID" >$TTY
+
+
+#kill -2 $(ps | grep hostapd | awk '{print $1}') >/dev/null
+#kill -2 $(ps | grep dnsmasq | awk '{print $1}') >/dev/null
+#      kill -9 $HOSTAPDPID $DNSMASQPID 2>&1 >/dev/null
