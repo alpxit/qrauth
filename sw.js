@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qrauth-v1.1.11';
+const CACHE_NAME = 'qrauth-v1.1.12';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -22,7 +22,16 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
+  event.waitUntil(
+      caches.keys().then((cacheNames) => {
+        return Promise.all(
+            cacheNames.map((cacheName) => {
+              if (cacheName !== CACHE_NAME)
+                return caches.delete(cacheName);
+            })
+        );
+      }).then(() => clients.claim())
+  );
 });
 
 self.addEventListener('fetch', (event) => {

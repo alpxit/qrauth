@@ -42,7 +42,7 @@ function prepareControls() {
   let btnShowHelp = $('#btnShowHelp');
   let whatTheArea = $('#whatTheArea');
   let hsdHtmlTemplate = '<li id="#id"><a class="dropdown-item" href="#">#html</a></li>';
-  let hsdHtmlTemplateBtn = '<li id="#id"><a class="dropdown-item disabled" aria-disabled="true" href="#">#html</a></li>';
+  let hsdHtmlTemplateBtn = '<button id="#id" class="dropdown-item btn-sm btn-outline-primary">#html</button>';
 
   selHSD.html('');
   let isHSDnotEmpty = false;
@@ -65,8 +65,7 @@ function prepareControls() {
       btnKeyDestList.removeClass('btn-outline-secondary bg-success-highlight');
     },500);
     selHSD.append('<li><hr class="dropdown-divider"></li>');
-    selHSD.append(hsdHtmlTemplateBtn.replace('#id', 'actSaveToFile').replace('#html', 'Save to file'));
-    selHSD.append(hsdHtmlTemplateBtn.replace('#id', 'actLoadFromFile').replace('#html', 'Load from file'));
+    selHSD.append(hsdHtmlTemplateBtn.replace('#id', 'actOpenSaveFile').replace('#html', 'Open/Save file...'));
   }
 
   function fillPasswordInputs(hsd) {
@@ -145,6 +144,74 @@ function prepareControls() {
       if (selectedHSD.length) $(selectedHSD[0]).find('a').click();
       else localStorage.removeItem(lsSelectedHSD);
     }, 200);
+
+  let openSaveFileArea = $('#openSaveFileArea');
+  let inpFileDataPassword = $('#inpFileDataPassword');
+  function showSaveFileArea() {
+    event.preventDefault();
+    openSaveFileArea[openSaveFileArea.hasClass('d-none') ? 'removeClass' : 'addClass']('d-none');
+  }
+  $('#btnCloseOpenSaveFileArea').click(showSaveFileArea)
+  selHSD.find('#actOpenSaveFile').click(showSaveFileArea);
+  $('#btnSaveFile').click(async function () {
+    let thePass = inpFileDataPassword.val();
+    if (!thePass.length) thePass = '.';
+    TOTP6.generateSecretKey(thePass, function (key) {
+      let e= new age.Encrypter();
+      e.setPassphrase(key);
+      //e.addRecipient(publicKey);
+      e.encrypt(localStorage[lsHSD]).then(
+        async encryptedData => {
+          let theData = thePass === '.' ? localStorage[lsHSD] : age.armor.encode(encryptedData);
+          try {
+            const handle = await window.showSaveFilePicker({
+              suggestedName: 'qrauth-' + Date.now() + '.age',
+            });
+            const writable = await handle.createWritable();
+            await writable.write(theData);
+            await writable.close();
+          } catch (err) {
+            saveViaAnchor(theData);
+          }
+        });
+    })
+  });
+  $('#btnOpenFile').click(async function () {
+    let thePass = inpFileDataPassword.val();
+    if (!thePass.length) thePass = '.';
+    TOTP6.generateSecretKey(thePass, async function (key) {
+      const [fileHandle] = await window.showOpenFilePicker({
+        types: [{
+          accept: {'text/plain': ['.age']}
+        }]
+      });
+
+      const file = await fileHandle.getFile();
+      const encryptedData = await file.text();
+      if (thePass === '.') {
+        try {
+          const obj = JSON.parse(encryptedData);
+          localStorage[lsHSD] = JSON.stringify(obj);
+          console.log(obj);
+        } catch (error) {
+          console.error("Failed to parse JSON:", error);
+        }
+      } else {
+        //let data = Uint8Array.fromBase64(encryptedData);
+        let d= new age.Decrypter();
+        d.addPassphrase(key);
+        d.decrypt(age.armor.decode(encryptedData), 'text').then((data) => {
+          try {
+            const obj = JSON.parse(data);
+            localStorage[lsHSD] = JSON.stringify(obj);
+            location.reload();
+          } catch (error) {
+            console.error("Failed to parse JSON:", error);
+          }
+        })
+      }
+    })
+  });
 
   function showInputPassword(pass) {
     if (event) event.preventDefault();
@@ -381,7 +448,7 @@ function prepareControls() {
         localStorage[lsHSD] = JSON.stringify(objHSD);
         let dest = selectedHSD.path;
         if (isNewDest)
-          selHSD.append(hsdHtmlTemplate.replace('#id', dest.replaceAll('/','_')).replace('#html',dest));
+          selHSD.prepend(hsdHtmlTemplate.replace('#id', dest.replaceAll('/','_')).replace('#html',dest));
         const data = encryptedData.toBase64();
         if (selectedHSD.usbIP !== '0.0.0.0') {
           let requrl = 'http://'+selectedHSD.usbIP+':54321/&'+data;
