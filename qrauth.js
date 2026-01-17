@@ -308,7 +308,6 @@ function prepareControls() {
   }
   let preventDoubleClick = false;
   function btnShowAction() {
-    console.log(this, event, preventDoubleClick);
     if (event) event.preventDefault();
     if (preventDoubleClick)
       return;
@@ -451,9 +450,10 @@ function prepareControls() {
           selHSD.prepend(hsdHtmlTemplate.replace('#id', dest.replaceAll('/','_')).replace('#html',dest));
         const data = encryptedData.toBase64();
         if (selectedHSD.usbIP !== '0.0.0.0') {
-          let requrl = 'http://'+selectedHSD.usbIP+':54321/&'+data;
+          let requrl = 'http://'+selectedHSD.usbIP+':8080';
           //console.log(requrl);
-          fetch(requrl,{mode: 'no-cors'}).then(response => {
+          //navigator.sendBeacon(requrl, 'GET /&'+data + ' end\r\n');
+          fetch(requrl + '/&'+data,{mode: 'no-cors'}).then(response => {
             if (response.type === 'opaque')
               qrAnimationTimeout = 1;
           });

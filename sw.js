@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qrauth-v1.1.12';
+const CACHE_NAME = 'qrauth-v1.2.1';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -35,6 +35,8 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+if (event.request.url.startsWith('http://10.'))
+    return;
   event.respondWith(
       caches.match(event.request).then((cachedResponse) => {
         return cachedResponse || fetch(event.request);
