@@ -354,7 +354,7 @@ function prepareControls() {
       let pass = inpCurrentPassword.val();
       btnShowQrCode.find('svg').attr('fill', 'gray');
       labelOTPcode.removeClass('d-none');
-      //TOTP6.generateSecretKey(pass, refreshOtp);
+      TOTP6.generateSecretKey(pass, refreshOtp);
     } else
       stopShowQRcode();
   }
