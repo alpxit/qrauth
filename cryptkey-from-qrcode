@@ -2,12 +2,14 @@
 # location path: /usr/local/sbin
 # in /etc/rc.local must execute keyctl link $(keyctl show @us | grep TOTPKEY | awk '{print $1}') @s
 
-#set +e
+#set -x
 
 PACKAGE_NAME="cryptkey-from-qrcode"
 TTY=/dev/tty0
+NUL=/dev/null
 #TTY=/dev/stderr
 OTPkey="TOTPKEY"
+HTTPPORT=8080
 
 # workaround because of changing passsword for LUKS disk not working properly inner this script
 LUKSPASSCHANGED_KEYRING_ID=`keyctl search @u user "LUKSPASSCHANGED" 2>/dev/null`
@@ -25,69 +27,45 @@ fi
 
 KEYRING_ID=`age-keygen | grep AGE-SECRET-KEY | keyctl padd user "$OTPkey" @u`
 #echo "KEYRING_ID: $KEYRING_ID" >$TTY
-PUBKEY=`keyctl pipe $KEYRING_ID | age-keygen -y`
+PUBKEY=`keyctl pipe $KEYRING_ID | age-keygen -y 2>$NUL`
 #sha256sum=`echo $PUBKEY | sha256sum`
 #echo "$PUBKEY:$sha256sum"
 
 
-WIFIIFCIP="0.0.0.0"
+USBIFCIP="0.0.0.0"
 # this may be will wifi and bt channels to take passwrods, but it still unstable and have some unresolved issues...
+for interface in /sys/class/net/*; do
+  ifc=$(readlink "$interface")
+  if [[ "$ifc" == */usb* ]] >$TTY; then
+    ifcn=${interface#/sys/class/net/}
+    ip link set $ifcn up >$NUL
+    dhcpcd -4 $ifcn 2>$NUL 1>$NUL
+    USBIFCIP=`ifconfig $ifcn | grep "inet addr:" | sed 's/.*addr://' | awk '{print $1}'`
+    if [ -z "$USBIFCIP" ]; then
+      USBIFCIP="0.0.0.0"
+    fi
+#    echo "">$TTY
+#    echo "USB network interface IP: $USBIFCIP">$TTY
+  fi
+done
 
 
 HOSTNAME=`cat /etc/hostname`
 if [ -z "$HOSTNAME" ]; then
   HOSTNAME="HOSTNAME"
 fi
-PUBKEY=111/$HOSTNAME/LUKS/sdb3_qrcode/$WIFIIFCIP/$PUBKEY
-echo "$PUBKEY">$TTY
+PUBKEY=111/$HOSTNAME/LUKS/$CRYPTTAB_NAME/$USBIFCIP/$PUBKEY
 
 echo " ">$TTY
-qrencode -t ANSI256 "$PUBKEY" >$TTY
-echo "Please scan the public key QRcode...">$TTY
-echo "and now 62 seconds of countdown timeout...">$TTY
+qrencode -m 2 -t ANSI256 "$PUBKEY" >$TTY
+echo "$PUBKEY">$TTY
+echo "Please make scan this QR code in apropriate PWA. Now 62 seconds of countdown waiting timeout...">$TTY
 
-BASE62="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
-LEN=0
-CNTR=""
-TIMEOUT=62
 
-(while [ $TIMEOUT -gt 0 ]; do sleep 1; echo -n $(echo "$BASE62" | cut -c$TIMEOUT) >$TTY; TIMEOUT=$((TIMEOUT-1)); done;
-keyctl unlink $KEYRING_ID>/dev/null;
-kill -2 $(ps | grep zbarcam | awk '{print $1}') >/dev/null
-)&
-TIMEOUTPID=$!
-
-zbarcam -q --nodisplay --nodbus --raw -Sdisable -Sqrcode.enable | \
-while read -r QRCHUNK >/dev/null; do
-    NDGTS=`echo $QRCHUNK | cut -c 1`
-    NCHUNKS=`echo $QRCHUNK | cut -c 2-$((NDGTS+1))`
-    ICHUNK=`echo $QRCHUNK | cut -c $((NDGTS+2))-$((NDGTS*2+1))`
-    echo " ">$TTY
-    echo -n "{$ICHUNK/$NCHUNKS: ">$TTY
-    ICHUNK=$(echo "obase=10; ibase=10; ${ICHUNK}" | bc)
-    QRCHUNK=`echo "$QRCHUNK" | cut -c $((NDGTS*2+2))-`
-    f=$(echo "$BASE62" | cut -c$ICHUNK)
-    if echo "$CNTR" | grep -q $f; then
-      echo -n "$LEN} # ">$TTY
-    else
-      CNTR=$CNTR$f
-      VARCHUNK="QRCHUNK$ICHUNK"
-      eval "$VARCHUNK=\"$QRCHUNK\""
-      LEN=$((LEN+1))
-      echo -n "$LEN} ">$TTY
-    fi
-    if [ $LEN -eq $NCHUNKS ]; then
-      QRDATA=""
-      while [ $LEN -gt 0 ]; do
-        VARCHUNK="QRCHUNK$LEN"
-        eval "VAR=\$${VARCHUNK}"
-        QRDATA=$VAR$QRDATA
-        LEN=$((LEN-1))
-      done
-
+QRdataComplete() {
       kill -9 $TIMEOUTPID >/dev/null
       tmpfn=$(mktemp)
-      echo "$QRDATA" | base64 -d >$tmpfn 2>$TTY
+      echo "$1" | base64 -d >$tmpfn 2>$TTY
       LUKSKEY=`keyctl pipe $KEYRING_ID | age -d -i - $tmpfn`
       rm $tmpfn >$TTY
 #      echo "\n==$LUKSKEY==">$TTY
@@ -166,11 +144,111 @@ while read -r QRCHUNK >/dev/null; do
         read -r cont >/dev/null
         LUKSKEY=""
       fi
-      kill -2 $(ps | grep zbarcam | awk '{print $1}') >/dev/null
-      break
-    fi
+      kill -9 $(ps | grep zbarcam | awk '{print $1}') >/dev/null
+    return 0
+}
 
+zbarfifo="/tmp/zbarcam.fifo"  #case for no webcam
+tmpfifo="/tmp/qrauth.nc.fifo"
+mkfifo $tmpfifo >$NUL
+if [ "$USBIFCIP" != "0.0.0.0" ]; then
+(
+cat $tmpfifo | nc -l -p $HTTPPORT | grep GET | \
+while read -r GET >$NUL; do
+  data=${GET##*&}
+  QRDATA=${data% *}
+  echo -e "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\nAccess-Control-Allow-Origin: *\r\n\r\nOK" >$tmpfifo
+  QRdataComplete $QRDATA
+  break
 done
+)&
+FIFOPID=$!
+fi
+
+BASE62="0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+TIMEOUT=62
+(while [ -e $tmpfifo -a $TIMEOUT -gt 0 ]>$NUL; do
+  sleep 1 >$NUL
+  echo -n "$BASE62" | cut -c$TIMEOUT | tr -d '\n' >$TTY
+  TIMEOUT=$((TIMEOUT-1))
+ done
+ ISKEYID=`keyctl show @u | grep $KEYRING_ID  2>$NUL`
+ if [ ! -z "$ISKEYID" ]; then
+   keyctl unlink $KEYRING_ID >$NUL
+ fi
+ ZBARPID=`ps | grep zbarcam | awk '{print $1}'`
+ if [ ! -z "$ZBARPID" ]; then
+   kill -9 $ZBARPID >$NUL
+ fi
+)&
+TIMEOUTPID=$!
+
+
+ISVIDEODEV=`ls /dev/video* 2>$NUL`
+if [ -z "$ISVIDEODEV" ]; then
+  if [ "$USBIFCIP" == "0.0.0.0" ]; then
+    echo "No webcam found. Please enable USB modem on opened PWA device and start this again..." >$TTY
+    exit 0
+  fi
+  echo "### No camera found! USB modem only way... [$USBIFCIP]" >$TTY
+  test -e $zbarfifo || mkfifo $zbarfifo >$NUL
+  cat $zbarfifo >$NUL
+else
+LEN=0
+CNTR=""
+zbarcam -q --nodisplay --nodbus --raw -Sdisable -Sqrcode.enable | \
+while read -r QRCHUNK >/dev/null; do
+    NDGTS=`echo $QRCHUNK | cut -c 1`
+    NCHUNKS=`echo $QRCHUNK | cut -c 2-$((NDGTS+1))`
+    ICHUNK=`echo $QRCHUNK | cut -c $((NDGTS+2))-$((NDGTS*2+1))`
+    echo " ">$TTY
+    echo -n "{$ICHUNK/$NCHUNKS: ">$TTY
+    ICHUNK=$(echo "obase=10; ibase=10; ${ICHUNK}" | bc)
+    QRCHUNK=`echo "$QRCHUNK" | cut -c $((NDGTS*2+2))-`
+    f=$(echo "$BASE62" | cut -c$ICHUNK)
+    if echo "$CNTR" | grep -q $f; then
+      echo -n "$LEN} # ">$TTY
+    else
+      CNTR=$CNTR$f
+      VARCHUNK="QRCHUNK$ICHUNK"
+      eval "$VARCHUNK=\"$QRCHUNK\""
+      LEN=$((LEN+1))
+      echo -n "$LEN} ">$TTY
+    fi
+    if [ $LEN -eq $NCHUNKS ]; then
+      QRDATA=""
+      while [ $LEN -gt 0 ]; do
+        VARCHUNK="QRCHUNK$LEN"
+        eval "VAR=\$${VARCHUNK}"
+        QRDATA=$VAR$QRDATA
+        LEN=$((LEN-1))
+      done
+
+       QRdataComplete $QRDATA
+       break
+    fi
+done
+fi
+
+NCPID=`ps | grep $HTTPPORT | grep -v grep | awk '{print $1}'`
+if [ ! -z "$NCPID" ]; then
+  kill -9 $NCPID >$NUL
+  kill -9 $FIFOPID 2>$NUL 1>$NUL
+fi
+sleep 0.1
+
+FIFOPID=`ps | grep $tmpfifo | grep -v grep | awk '{print $1}'`
+if [ ! -z "$FIFOPID" ]; then
+  echo ".">$tmpfifo
+fi
+rm -f $tmpfifo >$NUL
+rm -f $zbarfifo >$NUL
+
+ISTOPID=`ps | grep $TIMEOUTPID`
+if [ ! -z "$ISTOPID" ]; then
+  kill -9 $TIMEOUTPID >$NUL
+fi
+
 
 LUKSKEY=$(keyctl pipe $KEYRING_ID)
 keyctl unlink $KEYRING_ID>/dev/null

@@ -158,7 +158,7 @@ function prepareControls() {
   let inpFileDataPassword = $('#inpFileDataPassword');
   function showSaveFileArea() {
     event.preventDefault();
-    let tgt = $('#'+$(this).attr('data-bs-target'));
+    let tgt = $($(this).attr('data-bs-target'));
     tgt[tgt.hasClass('d-none') ? 'removeClass' : 'addClass']('d-none');
   }
   $('#btnCloseOpenSaveFileArea').click(showSaveFileArea);
@@ -395,10 +395,10 @@ function prepareControls() {
   function showQRcodeAlert(addmsg) {
     let alertIncomatibleQRCodePanel = $('#alertIncomatibleQRCodePanel');
     alertIncomatibleQRCodePanel.removeClass('d-none');
-    $('#additionalAlertMsg').html(addmsg ? addmsg : '');
+    $('#additionalAlertMsg').html(addmsg || '');
     setTimeout(function () {
       alertIncomatibleQRCodePanel.addClass('d-none');
-    }, 5000);
+    }, 10000);
   }
   async function qrScanned(resp) {
     scanner.stop();
