@@ -49,6 +49,7 @@ function prepareControls() {
   let btnSettings = $('#btnSettings');
   let btnShowHelp = $('#btnShowHelp');
   let whatTheArea = $('#whatTheArea');
+  let switcherPTPMode = $('#switcherPTPMode');
   let hsdHtmlTemplate = '<li id="#id"><a class="dropdown-item" href="#">#html</a></li>';
   let hsdHtmlTemplateBtn = '<button id="#id" class="dropdown-item btn-sm btn-outline-primary">#html</button>';
 
@@ -157,9 +158,11 @@ function prepareControls() {
   let inpFileDataPassword = $('#inpFileDataPassword');
   function showSaveFileArea() {
     event.preventDefault();
-    openSaveFileArea[openSaveFileArea.hasClass('d-none') ? 'removeClass' : 'addClass']('d-none');
+    let tgt = $('#'+$(this).attr('data-bs-target'));
+    tgt[tgt.hasClass('d-none') ? 'removeClass' : 'addClass']('d-none');
   }
-  $('#btnCloseOpenSaveFileArea').click(showSaveFileArea)
+  $('#btnCloseOpenSaveFileArea').click(showSaveFileArea);
+  $('#btnCloseAlertIncomatibleQRCodePanel').click(showSaveFileArea);
   selHSD.find('#actOpenSaveFile').click(showSaveFileArea);
   $('#btnSaveFile').click(async function () {
     let thePass = inpFileDataPassword.val();
@@ -389,12 +392,13 @@ function prepareControls() {
   let scanner = null;
   let unlockButtonSaveNewPassword = false;
   let isQrCodeScannedFlag = 0;
-  function showQRcodeAlert() {
+  function showQRcodeAlert(addmsg) {
     let alertIncomatibleQRCodePanel = $('#alertIncomatibleQRCodePanel');
     alertIncomatibleQRCodePanel.removeClass('d-none');
+    $('#additionalAlertMsg').html(addmsg ? addmsg : '');
     setTimeout(function () {
       alertIncomatibleQRCodePanel.addClass('d-none');
-    }, 3000);
+    }, 5000);
   }
   async function qrScanned(resp) {
     scanner.stop();
@@ -404,7 +408,7 @@ function prepareControls() {
     $(qrCodeArea).html('');
     $(elQrCodeVideo).addClass('d-none');
     let arr = resp.data.split('/');
-    if (arr.length < 5) { showQRcodeAlert(); return }
+    if (arr.length < 5) { showQRcodeAlert(resp.data); return }
     let obj = {
       qrcCodeFragment: arr[0],
       hostName: arr[1],
@@ -458,7 +462,7 @@ function prepareControls() {
     if (inpNewPassword.val() !== '')
       sendData += '\n' + inpNewPassword.val();
     e.encrypt(sendData).then(
-      encryptedData => {
+      async encryptedData => {
         $(qrCodeArea).removeClass('d-none');
         let curKey = inpCurrentPassword.val();
         if (curKey && curKey !== hsd['currentKey'])
@@ -477,6 +481,20 @@ function prepareControls() {
         if (isNewDest)
           selHSD.prepend(hsdHtmlTemplate.replace('#id', dest.replaceAll('/','_')).replace('#html',dest));
         const data = encryptedData.toBase64();
+        if (switcherPTPMode[0].checked) {
+          try {
+            const handle = await window.showSaveFilePicker({suggestedName: 'qrauth.txt', types: [{accept: {'text/plain': '.txt'}}]});
+            const writable = await handle.createWritable();
+            await writable.write(data);
+            await writable.close();
+          } catch (err) {
+            console.log(err);
+          }
+          isQrCodeScannedFlag = 0;
+          passwordsFromSource(0, inpKeyDest.val());
+          preventDoubleClick = false;
+          return;
+        }
         if (selectedHSD.usbIP !== '0.0.0.0') {
           let requrl = 'http://'+selectedHSD.usbIP+':8080';
           //console.log(requrl);
@@ -572,7 +590,18 @@ function prepareControls() {
     btnSettings.removeClass('bg-primary');
     whatTheArea.addClass('d-none');
     btnShowHelp.removeClass('bg-primary');
-    scanner.start().then(() => {});
+    if (switcherPTPMode[0].checked) {
+      try {
+        const [fileHandle] = await window.showOpenFilePicker({suggestedName: 'qrauth.txt', types: [{accept: {'image/png': '.png', 'text/plain': '.txt'}}]});
+        if (fileHandle) {
+          const file = await fileHandle.getFile();
+          const data = await file.text();
+          qrScanned({data: data});
+        }
+      } catch (e) {
+      }
+    } else
+      scanner.start().then(() => {});
     progressBar.removeClass('bg-success');
     progressBar.addClass('bg-warning');
     activateProgressBar(15, 15, function () { // stop scanner cam in 15s of inactivity

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'qrauth-v1.2.5';
+const CACHE_NAME = 'qrauth-v1.3.0';
 const ASSETS = [
   './index.html',
   './manifest.json',

@@ -8,9 +8,13 @@
 TTY=/dev/stderr
 NUL=/dev/null
 HTTPPORT=8080
+QRAUTHFN="qrauth.txt"
+PTPPATH="/store_00010001/Pictures"
 
 SELFPID=$$
 SESSPUBKEY="SESSPUBKEY"
+cd /tmp
+
 
 KEYRING_ID=`keyctl search @u user "$SESSPUBKEY" 2>$NUL`
 if [ ! -z "$KEYRING_ID" ]; then
@@ -38,8 +42,17 @@ if [ -z "$HOSTNAME" ]; then
 fi
 
 PUBKEY=111/$HOSTNAME/qrauth/$WHOAMI/$USBIFCIP/$PUBKEY
+ISPTPMODE=0
+if [ -e /usr/bin/gphoto2 ]; then
+  echo -n "$PUBKEY">$QRAUTHFN
+  gphoto2 -q -f $PTPPATH -d $QRAUTHFN 2>$TTY 1>$NUL
+  gphoto2 -q --force-overwrite -f $PTPPATH -u $QRAUTHFN 2>$TTY 1>$NUL
+  if [ $? -eq 0 ]; then
+    ISPTPMODE=${#PUBKEY}
+    echo "USB PTP Mode is active! Now you could enable USB mode switcher in PWA UI">$TTY
+  fi
+fi
 qrencode -t ANSI256UTF8 "$PUBKEY">$TTY
-echo "Please scan public key qrcode from QR Authentication PWA UI">$TTY
 echo "and now 62 countdown seconds of waiting the passkey via QR codes (or press Ctrl+C)...">$TTY
 
 
@@ -53,6 +66,7 @@ QRdataComplete() {
   return 0
 }
 
+zbarfifo=/tmp/zbarcam.fifo  #case for no webcam
 tmpfifo=/tmp/qrauth.nc.fifo
 rm -f $tmpfifo >$NUL
 mkfifo $tmpfifo || exit 1
@@ -74,6 +88,14 @@ TIMEOUT=62
   sleep 1 >$NUL
   echo "$BASE62" | cut -zc$TIMEOUT >$TTY
   TIMEOUT=$((TIMEOUT-1))
+  if [ $ISPTPMODE -ne 0 ]; then
+    QRDATA=`gphoto2 -q --force-overwrite -f $PTPPATH -p $QRAUTHFN --stdout 2>$TTY`
+    DATASIZE=${#QRDATA}
+    if [ ! -z "$QRDATA" -a $DATASIZE -gt $ISPTPMODE ]; then
+      QRdataComplete $QRDATA
+      break
+    fi
+  fi
  done
  ISKEYID=`keyctl show @u | grep $KEYRING_ID  2>$NUL`
  if [ ! -z "$ISKEYID" ]; then
@@ -110,6 +132,7 @@ terminate() {
 #    kill -9 $FIFOPID 2>$NUL 1>$NUL
   fi
   rm -f $tmpfifo >$NUL
+  rm -f $zbarfifo >$NUL
 
   ISTOPID=`ps -A | grep $TIMEOUTPID`
   if [ ! -z "$ISTOPID" ]; then
@@ -123,7 +146,18 @@ terminate() {
 }
 trap terminate INT TERM
 
-
+ISVIDEODEV=`ls /dev/video* 2>$NUL`
+if [ -z "$ISVIDEODEV" ]; then
+  if [ "$USBIFCIP" == "0.0.0.0" ]; then
+    echo "No webcam found. Please enable USB modem on opened PWA device and start this again..." >$TTY
+    sleep 1
+    terminate
+    exit 1
+  fi
+  echo "### No camera found! USB modem only way..." >$TTY
+  test -e $zbarfifo || mkfifo $zbarfifo >$NUL
+  cat $zbarfifo >$NUL
+else
 LEN=0
 CNTR=""
 zbarcam -q --nodisplay --nodbus --raw -Sdisable -Sqrcode.enable | \
@@ -158,6 +192,7 @@ while read -r QRCHUNK >$NUL; do
     break
   fi
 done
+fi
 sleep 0.1
 
 ISKEYID=`keyctl show @u | grep $KEYRING_ID  2>$NUL`
