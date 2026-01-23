@@ -28,7 +28,7 @@ fi
 
 KEYRING_ID=`age-keygen | grep AGE-SECRET-KEY | keyctl padd user "$OTPkey" @u`
 #echo "KEYRING_ID: $KEYRING_ID" >$TTY
-PUBKEY=`keyctl pipe $KEYRING_ID | age-keygen -y 2>$NUL`
+PUBKEY0=`keyctl pipe $KEYRING_ID | age-keygen -y 2>$NUL`
 #sha256sum=`echo $PUBKEY | sha256sum`
 #echo "$PUBKEY:$sha256sum"
 
@@ -60,7 +60,7 @@ HOSTNAME=`cat /etc/hostname`
 if [ -z "$HOSTNAME" ]; then
   HOSTNAME="HOSTNAME"
 fi
-PUBKEY=111/$HOSTNAME/LUKS/$CRYPTTAB_NAME/$USBIFCIP/$PUBKEY
+PUBKEY=111/$HOSTNAME/LUKS/$CRYPTTAB_NAME/$USBIFCIP/$PUBKEY0
 ISPTPMODE=0
 if [ -e /usr/bin/gphoto2 ]; then
   echo -n "$PUBKEY">$QRAUTHFN
@@ -72,7 +72,6 @@ if [ -e /usr/bin/gphoto2 ]; then
   fi
 fi
 qrencode -m 2 -t ANSI256 "$PUBKEY" >$TTY
-echo "$PUBKEY">$TTY
 echo "Please make scan the QR code in apropriate PWA. Now 62 seconds of countdown waiting timeout...">$TTY
 
 
@@ -121,7 +120,7 @@ QRdataComplete() {
         echo "...boot next...">$TTY
         echo " ">$TTY
 
-        OTPHEX=`echo -n "$LUKSKEY" | sha256sum | sed 's/ .*$//'`
+        OTPHEX=`echo -n "$PUBKEY0$LUKSKEY" | sha256sum | sed 's/ .*$//'`
 
         strbin=`for i in $(echo $OTPHEX | sed 's/../& /g'); do
           HEX=$(echo $i | tr 'a-f' 'A-F')
@@ -147,7 +146,7 @@ QRdataComplete() {
         echo -n "$LUKSKEY" | keyctl pupdate $KEYRING_ID
 
         PKEYRING_ID=`keyctl get_persistent @us 0`
-        echo "OTPKEY keyringID: $PKEYRING_ID">$TTY
+#        echo "OTPKEY: $OTPsecret => keyringID: $PKEYRING_ID">$TTY
         PPKEYRING_ID=`echo -n "$OTPsecret" | keyctl padd user "$OTPkey" $PKEYRING_ID`
         keyctl setperm $PPKEYRING_ID 0x3F3F3F3F >$TTY
       else

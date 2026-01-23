@@ -1,3 +1,4 @@
+let version = 'v.1.3.3';
 let lsHSD = 'hst/svc/dst'; // hostName/serviceName/destinationName
 let lsQrChunksQuantity = 'qrChunksQuantity';
 let lsQrChunkInterval = 'qrChunkInterval';
@@ -242,7 +243,7 @@ function prepareControls() {
   $('#btnShowSaveFilePassword').click(showInputPassword);
   labelOTPcode.click(function () {
     event.preventDefault();
-    TOTP6.generateSecretKey(inpCurrentPassword.val(), showInputPassword)
+    TOTP6.generateSecretKey(selectedHSD.publicKey + inpCurrentPassword.val(), showInputPassword)
   });
 
 
@@ -357,7 +358,7 @@ function prepareControls() {
       let pass = inpCurrentPassword.val();
       btnShowQrCode.find('svg').attr('fill', 'gray');
       labelOTPcode.removeClass('d-none');
-      TOTP6.generateSecretKey(pass, refreshOtp);
+      TOTP6.generateSecretKey(selectedHSD.publicKey + pass, refreshOtp);
     } else
       stopShowQRcode();
   }
@@ -475,7 +476,7 @@ function prepareControls() {
           unlockButtonSaveNewPassword = true;
           hsd['applyNewKey'] = inpNewPassword.val();
         }
-        delete hsd.publicKey;
+        //delete hsd.publicKey; because now TOTP secret will be generates on base of public key + dest password
         localStorage[lsHSD] = JSON.stringify(objHSD);
         let dest = selectedHSD.path;
         if (isNewDest)
@@ -760,6 +761,7 @@ function prepareControls() {
           //device.addEventListener('gattserverdisconnected', onDisconnected);
         });*/
   });
+  $('#labelVersion').val(version);
 }
 
 $(document).ready(prepareControls);
