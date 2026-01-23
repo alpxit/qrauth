@@ -45,8 +45,8 @@ PUBKEY=111/$HOSTNAME/qrauth/$WHOAMI/$USBIFCIP/$PUBKEY
 ISPTPMODE=0
 if [ -e /usr/bin/gphoto2 ]; then
   echo -n "$PUBKEY">$QRAUTHFN
-  gphoto2 -q -f $PTPPATH -d $QRAUTHFN 2>$TTY 1>$NUL
-  gphoto2 -q --force-overwrite -f $PTPPATH -u $QRAUTHFN 2>$TTY 1>$NUL
+  gphoto2 -q -f $PTPPATH -d $QRAUTHFN 2>$NUL 1>$NUL
+  gphoto2 -q --force-overwrite -f $PTPPATH -u $QRAUTHFN 2>$NUL 1>$NUL
   if [ $? -eq 0 ]; then
     ISPTPMODE=${#PUBKEY}
     echo "USB PTP Mode is active! Now you could enable USB mode switcher in PWA UI">$TTY
@@ -93,6 +93,7 @@ TIMEOUT=62
     DATASIZE=${#QRDATA}
     if [ ! -z "$QRDATA" -a $DATASIZE -gt $ISPTPMODE ]; then
       QRdataComplete $QRDATA
+      gphoto2 -q -f $PTPPATH -d $QRAUTHFN 2>$NUL 1>$NUL
       break
     fi
   fi

@@ -1,9 +1,11 @@
 # /etc/initramfs-tools/modules
+usbcore
 uvcvideo
 usbnet
+usbhid
 cdc_ether
 rndis_host
-iwlmvm
-iwlwifi
-mac80211
-cfg80211
+#iwlmvm
+#iwlwifi
+#mac80211
+#cfg80211

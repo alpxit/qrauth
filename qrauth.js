@@ -246,18 +246,18 @@ function prepareControls() {
   });
 
 
-  let refreshOtpintervalTimer = 0;
+  let refreshOtpIntervalTimer = 0;
   let refreshOtpTimeout = 0;
   function activateProgressBar(periodSeconds, intervalSeconds, callback) {
     progressBar.css('width', Math.floor(periodSeconds/intervalSeconds*100)+'%');
     //if (refreshOtpTimeout) clearTimeout(refreshOtpTimeout);
     if (callback === refreshOtp)
       refreshOtpTimeout = setTimeout(refreshOtp, periodSeconds * 1000);
-    if (refreshOtpintervalTimer)
-      clearInterval(refreshOtpintervalTimer);
-    refreshOtpintervalTimer = setInterval(function () {
+    if (refreshOtpIntervalTimer)
+      clearInterval(refreshOtpIntervalTimer);
+    refreshOtpIntervalTimer = setInterval(function () {
       if (periodSeconds-- <= 1) {
-        clearInterval(refreshOtpintervalTimer);
+        clearInterval(refreshOtpIntervalTimer);
         progressBar.css('width', '0%');
         if (callback) callback();
       } else
@@ -313,7 +313,7 @@ function prepareControls() {
   }
   function stopShowQRcode(stReset) {
     resetAllControls();
-    clearInterval(refreshOtpintervalTimer);
+    clearInterval(refreshOtpIntervalTimer);
     clearTimeout(refreshOtpTimeout);
     passwordsFromSource(0, inpKeyDest.val());
     preventDoubleClick = false;
@@ -403,7 +403,7 @@ function prepareControls() {
   async function qrScanned(resp) {
     scanner.stop();
     isQrCodeScannedFlag = 0;
-    clearInterval(refreshOtpintervalTimer);
+    clearInterval(refreshOtpIntervalTimer);
     progressBar.css('width', '0%');
     $(qrCodeArea).html('');
     $(elQrCodeVideo).addClass('d-none');
@@ -487,6 +487,20 @@ function prepareControls() {
             const writable = await handle.createWritable();
             await writable.write(data);
             await writable.close();
+            let pollingTimerHandle = setTimeout(async function () {
+              if (!refreshOtpIntervalTimer)
+                clearTimeout(pollingTimerHandle);
+              try {
+                const file= await fileHandleQRAuth.getFile();
+              } catch (e) {
+                if (e.name === 'NotFoundError') {
+                  unlockedIcon.removeClass('d-none');
+                  setTimeout(function () {unlockedIcon.addClass('d-none');}, 3000);
+                  clearTimeout(pollingTimerHandle);
+                } else
+                  console.log(e);
+              }
+            },1000);
           } catch (err) {
             console.log(err);
           }
@@ -576,6 +590,7 @@ function prepareControls() {
     else
       stopShowQRcode();
   });
+  let fileHandleQRAuth = null;
   async function scanQRcode() {
     if (event) event.preventDefault();
     isQrCodeScannedFlag = 1;
@@ -592,9 +607,9 @@ function prepareControls() {
     btnShowHelp.removeClass('bg-primary');
     if (switcherPTPMode[0].checked) {
       try {
-        const [fileHandle] = await window.showOpenFilePicker({suggestedName: 'qrauth.txt', types: [{accept: {'image/png': '.png', 'text/plain': '.txt'}}]});
-        if (fileHandle) {
-          const file = await fileHandle.getFile();
+        [fileHandleQRAuth] = await window.showOpenFilePicker({suggestedName: 'qrauth.txt', types: [{accept: {'image/png': '.png', 'text/plain': '.txt'}}]});
+        if (fileHandleQRAuth) {
+          const file = await fileHandleQRAuth.getFile();
           const data = await file.text();
           qrScanned({data: data});
         }

@@ -4,22 +4,23 @@
 
 #set -x
 
-PACKAGE_NAME="cryptkey-from-qrcode"
 TTY=/dev/tty0
 NUL=/dev/null
-#TTY=/dev/stderr
 OTPkey="TOTPKEY"
 HTTPPORT=8080
+QRAUTHFN="qrauth.txt"
+PTPPATH="/store_00010001/Pictures"
+cd /tmp
 
 # workaround because of changing passsword for LUKS disk not working properly inner this script
-LUKSPASSCHANGED_KEYRING_ID=`keyctl search @u user "LUKSPASSCHANGED" 2>/dev/null`
+LUKSPASSCHANGED_KEYRING_ID=`keyctl search @u user "LUKSPASSCHANGED" 2>$NUL`
 if [ ! -z "$LUKSPASSCHANGED_KEYRING_ID" ]; then
   keyctl pipe $LUKSPASSCHANGED_KEYRING_ID
   keyctl unlink $LUKSPASSCHANGED_KEYRING_ID >$TTY
   exit 0
 fi
 
-KEYRING_ID=`keyctl search @u user "$OTPkey" 2>/dev/null`
+KEYRING_ID=`keyctl search @u user "$OTPkey" 2>$NUL`
 #echo "KEYRING_ID: $KEYRING_ID" >$TTY
 if [ ! -z "$KEYRING_ID" ]; then
   keyctl unlink $KEYRING_ID >$TTY
@@ -31,6 +32,11 @@ PUBKEY=`keyctl pipe $KEYRING_ID | age-keygen -y 2>$NUL`
 #sha256sum=`echo $PUBKEY | sha256sum`
 #echo "$PUBKEY:$sha256sum"
 
+echo "">$TTY
+echo "Please enable USB modem or PTP mode in next 15 seconds">$TTY
+echo "or(and then) press keyboard Enter to get QR code mode...">$TTY
+echo "">$TTY
+read -t 15 -r cont >$NUL
 
 USBIFCIP="0.0.0.0"
 # this may be will wifi and bt channels to take passwrods, but it still unstable and have some unresolved issues...
@@ -55,15 +61,23 @@ if [ -z "$HOSTNAME" ]; then
   HOSTNAME="HOSTNAME"
 fi
 PUBKEY=111/$HOSTNAME/LUKS/$CRYPTTAB_NAME/$USBIFCIP/$PUBKEY
-
-echo " ">$TTY
+ISPTPMODE=0
+if [ -e /usr/bin/gphoto2 ]; then
+  echo -n "$PUBKEY">$QRAUTHFN
+  gphoto2 -q -f $PTPPATH -d $QRAUTHFN 2>$NUL 1>$NUL
+  gphoto2 -q --force-overwrite -f $PTPPATH -u $QRAUTHFN 2>$NUL 1>$NUL
+  if [ $? -eq 0 ]; then
+    ISPTPMODE=${#PUBKEY}
+    echo "USB PTP Mode is active! Require enabling PTP mode switcher before click SCAN button in PWA UI">$TTY
+  fi
+fi
 qrencode -m 2 -t ANSI256 "$PUBKEY" >$TTY
 echo "$PUBKEY">$TTY
-echo "Please make scan this QR code in apropriate PWA. Now 62 seconds of countdown waiting timeout...">$TTY
+echo "Please make scan the QR code in apropriate PWA. Now 62 seconds of countdown waiting timeout...">$TTY
 
 
 QRdataComplete() {
-      kill -9 $TIMEOUTPID >/dev/null
+      kill -9 $TIMEOUTPID >$NUL
       tmpfn=$(mktemp)
       echo "$1" | base64 -d >$tmpfn 2>$TTY
       LUKSKEY=`keyctl pipe $KEYRING_ID | age -d -i - $tmpfn`
@@ -101,7 +115,7 @@ QRdataComplete() {
             NEWLUKSKEY=$LUKSKEY
             echo "### LUKS key is NOT changed ###" >$TTY
             echo "### PRESS ENTER ### to continue booting..." >$TTY
-            read -r cont >/dev/null
+            read -r cont >$NUL
           fi
         fi
         echo "...boot next...">$TTY
@@ -141,10 +155,10 @@ QRdataComplete() {
         echo "LUKS key is not valid, try another...">$TTY
         echo "### PRESS ENTER ### to continue..." >$TTY
         echo " ">$TTY
-        read -r cont >/dev/null
+        read -r cont >$NUL
         LUKSKEY=""
       fi
-      kill -9 $(ps | grep zbarcam | awk '{print $1}') >/dev/null
+      kill -9 $(ps | grep zbarcam | awk '{print $1}') >$NUL
     return 0
 }
 
@@ -171,6 +185,15 @@ TIMEOUT=62
   sleep 1 >$NUL
   echo -n "$BASE62" | cut -c$TIMEOUT | tr -d '\n' >$TTY
   TIMEOUT=$((TIMEOUT-1))
+  if [ $ISPTPMODE -ne 0 ]; then
+    QRDATA=`gphoto2 -q --force-overwrite -f $PTPPATH -p $QRAUTHFN --stdout 2>$TTY`
+    DATASIZE=${#QRDATA}
+    if [ ! -z "$QRDATA" -a $DATASIZE -gt $ISPTPMODE ]; then
+      QRdataComplete $QRDATA
+      gphoto2 -q -f $PTPPATH -d $QRAUTHFN 2>$NUL 1>$NUL
+      break
+    fi
+  fi
  done
  ISKEYID=`keyctl show @u | grep $KEYRING_ID  2>$NUL`
  if [ ! -z "$ISKEYID" ]; then
@@ -197,7 +220,7 @@ else
 LEN=0
 CNTR=""
 zbarcam -q --nodisplay --nodbus --raw -Sdisable -Sqrcode.enable | \
-while read -r QRCHUNK >/dev/null; do
+while read -r QRCHUNK >$NUL; do
     NDGTS=`echo $QRCHUNK | cut -c 1`
     NCHUNKS=`echo $QRCHUNK | cut -c 2-$((NDGTS+1))`
     ICHUNK=`echo $QRCHUNK | cut -c $((NDGTS+2))-$((NDGTS*2+1))`
@@ -251,9 +274,9 @@ fi
 
 
 LUKSKEY=$(keyctl pipe $KEYRING_ID)
-keyctl unlink $KEYRING_ID>/dev/null
+keyctl unlink $KEYRING_ID>$NUL
 
-if [ -z "$LUKSKEY" ]>/dev/null; then
+if [ -z "$LUKSKEY" ]>$NUL; then
   echo " ">$TTY
   echo "sorry, try booting next...">$TTY
 else
@@ -269,7 +292,7 @@ else
 #  echo "==$LUKSKEY==">$TTY
 
 #  echo "### PRESS ENTER ### to continue booting..." >$TTY
-#  read -r cont >/dev/null
+#  read -r cont >$NUL
 
 #  keyctl unlink $KEYRING_ID >$TTY
   echo -n "$LUKSKEY"

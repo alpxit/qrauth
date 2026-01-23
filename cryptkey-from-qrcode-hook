@@ -33,7 +33,7 @@ copy_exec /usr/sbin/dnsmasq
 copy_exec /lib/firmware/iwlwifi-7265D-29.ucode.zst
 
 
-#copy_exec /usr/bin/zbarimg
+copy_exec /usr/bin/gphoto2
 copy_exec /usr/bin/zbarcam
 copy_exec /usr/bin/qrencode
 copy_exec /usr/lib/x86_64-linux-gnu/ImageMagick-6.9.12/modules-Q16/coders/bmp.so
