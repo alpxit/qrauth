@@ -490,6 +490,7 @@ function prepareControls() {
           selHSD.prepend(hsdHtmlTemplate.replace('#id', dest.replaceAll('/','_')).replace('#html',dest));
         const data = encryptedData.toBase64();
         if (switcherPTPMode[0].checked) {
+          $(qrCodeArea).addClass('d-none');
           try {
             const handle = await window.showSaveFilePicker({suggestedName: 'qrauth.txt', types: [{accept: {'text/plain': '.txt'}}]});
             const writable = await handle.createWritable();
@@ -518,6 +519,7 @@ function prepareControls() {
           return;
         }
         if (selectedHSD.usbIP !== '0.0.0.0') {
+          $(qrCodeArea).addClass('d-none');
           let requrl = 'http://'+selectedHSD.usbIP+':8080';
           //console.log(requrl);
           setTimeout(function () {
