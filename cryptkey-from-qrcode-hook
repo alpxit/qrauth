@@ -25,6 +25,7 @@ copy_exec /usr/bin/bc
 copy_exec /usr/bin/sha256sum
 copy_exec /usr/bin/keyctl
 copy_exec /usr/bin/base64
+copy_exec /usr/bin/oathtool
 #copy_exec /usr/sbin/lvscan
 #copy_exec /usr/sbin/lvdisplay
 #copy_exec /usr/sbin/vgchange
@@ -39,12 +40,9 @@ copy_exec /usr/bin/zbarcam
 copy_exec /usr/bin/qrencode
 copy_exec /usr/lib/x86_64-linux-gnu/ImageMagick-6.9.12/modules-Q16/coders/bmp.so
 copy_exec /usr/lib/x86_64-linux-gnu/ImageMagick-6.9.12/modules-Q16/coders/bmp.la
-/usr/lib/x86_64-linux-gnu/libgphoto2_port/0.12.2/disk.so
-/usr/lib/x86_64-linux-gnu/libgphoto2_port/0.12.2/ptpip.so
-/usr/lib/x86_64-linux-gnu/libgphoto2_port/0.12.2/serial.so
-/usr/lib/x86_64-linux-gnu/libgphoto2_port/0.12.2/usb1.so
-/usr/lib/x86_64-linux-gnu/libgphoto2_port/0.12.2/usbdiskdirect.so
-/usr/lib/x86_64-linux-gnu/libgphoto2_port/0.12.2/usbscsi.so
+copy_exec /usr/lib/x86_64-linux-gnu/libgphoto2_port/0.12.2/ptpip.so
+copy_exec /usr/lib/x86_64-linux-gnu/libgphoto2_port/0.12.2/usb1.so
+copy_exec /usr/lib/x86_64-linux-gnu/libgphoto2/2.5.31/ptp2.so
 copy_exec /usr/bin/age
 copy_exec /usr/bin/age-keygen
 copy_exec /etc/hostname
