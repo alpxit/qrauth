@@ -1,4 +1,4 @@
-let version = 'v.1.3.3';
+let version = 'v.1.3.4';
 let lsHSD = 'hst/svc/dst'; // hostName/serviceName/destinationName
 let lsQrChunksQuantity = 'qrChunksQuantity';
 let lsQrChunkInterval = 'qrChunkInterval';
@@ -272,6 +272,7 @@ function prepareControls() {
     currentOTPsecret = OTPsecret ? OTPsecret : currentOTPsecret;
     let qrc = await TOTP6.genCode(currentOTPsecret);
     $(qrCodeArea).html('');
+    $(qrCodeArea).removeClass('bg-black');
     let w = cardArea.width();
     new QRCode(qrCodeArea, {
       text: qrc,
@@ -406,8 +407,14 @@ function prepareControls() {
     isQrCodeScannedFlag = 0;
     clearInterval(refreshOtpIntervalTimer);
     progressBar.css('width', '0%');
-    $(qrCodeArea).html('');
     $(elQrCodeVideo).addClass('d-none');
+    TOTP6.generateSecretKey(resp.data, async function (key) {
+      let qrc = await TOTP6.genCode(key, Date.now() / 1000);
+      $(qrCodeArea).removeClass('d-none');
+      $(qrCodeArea).addClass('bg-black');
+      $(qrCodeArea).html('QRC controle code: &nbsp; <span style="font-size: x-large; color: yellow;">'+
+          qrc.slice(0, 3) + '-' + qrc.slice(3)+'</span><br><code style="color: gray">['+resp.data +']</code>');
+    });
     let arr = resp.data.split('/');
     if (arr.length < 5) { showQRcodeAlert(resp.data); return }
     let obj = {
