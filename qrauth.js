@@ -1,4 +1,4 @@
-let version = 'v.1.3.6';
+let version = 'v.1.3.7';
 let lsHSD = 'hst/svc/dst'; // hostName/serviceName/destinationName
 let lsQrChunksQuantity = 'qrChunksQuantity';
 let lsQrChunkInterval = 'qrChunkInterval';
@@ -417,17 +417,20 @@ function prepareControls() {
     });
     let arr = resp.data.split('/');
     if (arr.length < 5) { showQRcodeAlert(resp.data); return }
+    let ipport = arr[4].split(':');
     let obj = {
       qrcCodeFragment: arr[0],
       hostName: arr[1],
       serviceName: arr[2],
       destName: arr[3],
-      usbIP: arr[4],
+      usbIP: ipport[0],
+      usbPort: ipport[1],
       pubkey: arr[5]
     };
     if (obj.qrcCodeFragment !== '111' ||
         obj.pubkey.indexOf('age1') !== 0 ||
         !(/^((\d){1,3}\.){3}(\d){1,3}$/.test(obj.usbIP)) ||
+        (obj.usbPort !== '80' && obj.usbPort !== '8080') ||
         obj.hostName.length > 64 || obj.serviceName.length > 64 || obj.destName.length > 64) {
       showQRcodeAlert();
       return
@@ -443,6 +446,7 @@ function prepareControls() {
     selectedHSD = objHSD[obj.hostName][obj.serviceName][obj.destName];
     selectedHSD['path'] = path;
     selectedHSD['usbIP'] = obj.usbIP;
+    selectedHSD['usbPort'] = obj.usbPort;
     selectedHSD['publicKey'] = obj.pubkey;
     fillPasswordInputs(selectedHSD);
     btnShowQrCode.find('svg').attr('fill', 'yellow');
@@ -519,7 +523,7 @@ function prepareControls() {
           return;
         }
         if (selectedHSD.usbIP !== '0.0.0.0') {
-          let requrl = 'http://'+selectedHSD.usbIP+':8080';
+          let requrl = 'http://'+selectedHSD.usbIP+selectedHSD.usbPort;
           //console.log(requrl);
           setTimeout(function () {
             if (qrAnimationTimeout > 2)
@@ -530,16 +534,18 @@ function prepareControls() {
               unlockedIcon.removeClass('d-none');
               setTimeout(function () {unlockedIcon.addClass('d-none');}, 3000);
               qrAnimationTimeout = 1;
-              passwordsFromSource(0, inpKeyDest.val());
-              $(qrCodeArea).addClass('bg-black')
-              $(qrCodeArea).removeClass('d-none')
-              $(qrCodeArea).html('<code style="color: gray">Click button below if destination still in countdown state<br>' +
-                  '<button class="btn btn-secondary mt-2 mb-0 pt-0 pb-0" onclick="location.reload();" style="font-size: 2em">&#10227;</button>');
-              setTimeout(function () {
-                $(qrCodeArea).html('');
-                $(qrCodeArea).addClass('d-none');
-                $(qrCodeArea).removeClass('bg-black')
-              }, 10000);
+              if (selectedHSD.usbPort === '80') {
+                passwordsFromSource(0, inpKeyDest.val());
+                $(qrCodeArea).addClass('bg-black');
+                $(qrCodeArea).removeClass('d-none');
+                $(qrCodeArea).html('<code style="color: gray">Click button below if destination still in countdown state<br>' +
+                    '<button class="btn btn-secondary mt-2 mb-0 pt-0 pb-0" onclick="location.reload();" style="font-size: 2em">&#10227;</button>');
+                setTimeout(function () {
+                  $(qrCodeArea).html('');
+                  $(qrCodeArea).addClass('d-none');
+                  $(qrCodeArea).removeClass('bg-black')
+                }, 10000);
+              }
             }
           });
         }

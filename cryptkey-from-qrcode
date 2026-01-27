@@ -7,7 +7,7 @@
 TTY=/dev/tty0
 NUL=/dev/null
 OTPkey="TOTPKEY"
-HTTPPORT=8080
+HTTPPORT=80
 QRAUTHFN="qrauth.txt"
 PTPPATH="/store_00010001/Pictures"
 cd /tmp
@@ -53,7 +53,8 @@ for interface in /sys/class/net/*; do
       ip route add "$(echo "$USBIFCIP" | cut -d. -f1-3).0/24" dev "$ifcn" 2>$NUL >$TTY
       sleep 1
       GWIP=`ip route show | grep default | grep $ifcn | awk '{print $3}'`
-      arping -U -I $ifcn -c 3 $USBIFCIP 2>$TTY >$TTY
+      arping -U -I $ifcn -c 2 $USBIFCIP 2>$TTY >$TTY
+      arping -U -I $ifcn -c 2 $GWIP 2>$TTY >$TTY
       ping -c 2 -W 1 $GWIP 2>$TTY >$TTY
     fi
     break
@@ -91,7 +92,7 @@ HOSTNAME=`cat /etc/hostname`
 if [ -z "$HOSTNAME" ]; then
   HOSTNAME="HOSTNAME"
 fi
-PUBKEY=111/$HOSTNAME/LUKS/$CRYPTTAB_NAME/$USBIFCIP/$PUBKEY0
+PUBKEY=111/$HOSTNAME/LUKS/$CRYPTTAB_NAME/$USBIFCIP:$HTTPPORT/$PUBKEY0
 ISPTPMODE=0
 if [ -e /usr/bin/gphoto2 ]; then
   echo -n "$PUBKEY">$QRAUTHFN
@@ -102,6 +103,7 @@ if [ -e /usr/bin/gphoto2 ]; then
     echo "USB PTP Mode is active! Require enabling PTP mode switcher before click SCAN button in PWA UI">$TTY
   fi
 fi
+echo "QR data: [$PUBKEY]">$TTY
 qrencode -m 2 -t ANSI256 "$PUBKEY" >$TTY
 CC=`str2OTPsecret $PUBKEY | oathtool -c 1 -d 6 -b --hotp - | sed "s/.\{3\}/&-/"`
 echo "QRC data control code:  $CC  :  $CC  :  $CC  :  $CC  :  $CC  :  $CC  :  $CC">$TTY
