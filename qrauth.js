@@ -1,4 +1,4 @@
-let version = 'v.1.3.5';
+let version = 'v.1.3.6';
 let lsHSD = 'hst/svc/dst'; // hostName/serviceName/destinationName
 let lsQrChunksQuantity = 'qrChunksQuantity';
 let lsQrChunkInterval = 'qrChunkInterval';
@@ -519,7 +519,6 @@ function prepareControls() {
           return;
         }
         if (selectedHSD.usbIP !== '0.0.0.0') {
-          $(qrCodeArea).addClass('d-none');
           let requrl = 'http://'+selectedHSD.usbIP+':8080';
           //console.log(requrl);
           setTimeout(function () {
@@ -528,13 +527,19 @@ function prepareControls() {
           }, 2000);
           fetch(requrl + '/&'+data,{mode: 'no-cors', keepalive: false}).then(response => {
             if (response.type === 'opaque') {
-              fetch(requrl + '/&'+data,{mode: 'no-cors', keepalive: false}).then(response => {
-                if (response.type === 'opaque') {
-                  unlockedIcon.removeClass('d-none');
-                  setTimeout(function () {unlockedIcon.addClass('d-none');}, 3000);
-                  qrAnimationTimeout = 1;
-                }
-              });
+              unlockedIcon.removeClass('d-none');
+              setTimeout(function () {unlockedIcon.addClass('d-none');}, 3000);
+              qrAnimationTimeout = 1;
+              passwordsFromSource(0, inpKeyDest.val());
+              $(qrCodeArea).addClass('bg-black')
+              $(qrCodeArea).removeClass('d-none')
+              $(qrCodeArea).html('<code style="color: gray">Click button below if destination still in countdown state<br>' +
+                  '<button class="btn btn-secondary mt-2 mb-0 pt-0 pb-0" onclick="location.reload();" style="font-size: 2em">&#10227;</button>');
+              setTimeout(function () {
+                $(qrCodeArea).html('');
+                $(qrCodeArea).addClass('d-none');
+                $(qrCodeArea).removeClass('bg-black')
+              }, 10000);
             }
           });
         }
@@ -697,8 +702,6 @@ function prepareControls() {
     localStorage[lsQrChunkInterval] = $(this).val();
     lblQrChunkInterval.html(localStorage[lsQrChunkInterval]);
   });
-
-
 
   btnScanSessionPubkey.click(scanQRcode);
   lblScanQrCode.click(scanQRcode);

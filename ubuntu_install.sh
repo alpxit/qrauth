@@ -1,7 +1,7 @@
 #!/bin/bash
 
 echo "Installing dependencies..."
-sudo apt update && sudo apt install -y keyutils age qrencode zbar-tools ffmpeg v4l-utils
+sudo apt update && sudo apt install -y keyutils age qrencode zbar-tools gphoto2 ffmpeg v4l-utils
 
 echo "Configuring initramfs hooks..."
 
