@@ -1,4 +1,3 @@
-let version = 'v.1.3.7';
 let lsHSD = 'hst/svc/dst'; // hostName/serviceName/destinationName
 let lsQrChunksQuantity = 'qrChunksQuantity';
 let lsQrChunkInterval = 'qrChunkInterval';
@@ -19,7 +18,7 @@ let selectedHSD = undefined;
 
 function YYYYMMDDHHmmSS() {
   let ts = new Date();
-  function n2(n) {return ('00' + n.toString(2)).slice(-2)}
+  function n2(n) {return ('0' + n.toString()).slice(-2)}
   return ts.getFullYear().toString() + n2(ts.getMonth()+1) + n2(ts.getDate())
       + n2(ts.getHours()) + n2(ts.getMinutes()) + n2(ts.getSeconds());
 }
@@ -284,6 +283,22 @@ function prepareControls() {
     labelOTPcode.html(qrc);
 
     if (!$(qrCodeArea).hasClass('d-none')) {
+      if (selectedHSD.usbIP !== '0.0.0.0') {
+        let requrl = 'http://'+selectedHSD.usbIP+':'+selectedHSD.usbPort;
+        fetch(requrl + '/&'+qrc,{mode: 'no-cors', keepalive: false, priority: 'high'}).then(response => {
+          if (response.type === 'opaque')
+            stopShowQRcode();
+        });
+      } else
+      if (switcherPTPMode[0].checked && fileHandleQRAuth) {
+        try {
+          const writable = await fileHandleQRAuth.createWritable();
+          await writable.write(qrc);
+          await writable.close();
+        } catch (err) {
+          console.log(err);
+        }
+      }
       progressBar.removeClass('bg-warning');
       progressBar.addClass('bg-success');
       activateProgressBar(30 - Math.floor((Date.now() / 1000) % 30), 30, refreshOtp);
@@ -462,6 +477,7 @@ function prepareControls() {
   }
   let unlockedIcon = $('#unlockedIcon');
   let qrAnimationTimeout = 0;
+  let fileHandleQRAuth = null;
   function showAnimatedQRcode() {
     let w = $('#mainContainer').width();
     let arr = inpKeyDest.val().split('/');
@@ -487,8 +503,7 @@ function prepareControls() {
           unlockButtonSaveNewPassword = true;
           hsd['applyNewKey'] = inpNewPassword.val();
         }
-        //delete hsd.publicKey; because now TOTP secret will be generates on base of public key + dest password
-        localStorage[lsHSD] = JSON.stringify(objHSD);
+        localStorage[lsSelectedHSD] = arr[0]+'_'+arr[1]+'_'+arr[2];
         let dest = selectedHSD.path;
         if (isNewDest)
           selHSD.prepend(hsdHtmlTemplate.replace('#id', dest.replaceAll('/','_')).replace('#html',dest));
@@ -496,8 +511,8 @@ function prepareControls() {
         if (switcherPTPMode[0].checked) {
           $(qrCodeArea).addClass('d-none');
           try {
-            const handle = await window.showSaveFilePicker({suggestedName: 'qrauth.txt', types: [{accept: {'text/plain': '.txt'}}]});
-            const writable = await handle.createWritable();
+            //const handle = await window.showSaveFilePicker({suggestedName: 'qrauth.txt', types: [{accept: {'text/plain': '.txt'}}]});
+            const writable = await fileHandleQRAuth.createWritable();
             await writable.write(data);
             await writable.close();
             let pollingTimerHandle = setTimeout(async function () {
@@ -507,6 +522,7 @@ function prepareControls() {
                 const file= await fileHandleQRAuth.getFile();
               } catch (e) {
                 if (e.name === 'NotFoundError') {
+                  clearInterval(refreshOtpIntervalTimer);
                   unlockedIcon.removeClass('d-none');
                   setTimeout(function () {unlockedIcon.addClass('d-none');}, 3000);
                   clearTimeout(pollingTimerHandle);
@@ -523,29 +539,30 @@ function prepareControls() {
           return;
         }
         if (selectedHSD.usbIP !== '0.0.0.0') {
-          let requrl = 'http://'+selectedHSD.usbIP+selectedHSD.usbPort;
+          let requrl = 'http://'+selectedHSD.usbIP+':'+selectedHSD.usbPort;
           //console.log(requrl);
           setTimeout(function () {
             if (qrAnimationTimeout > 2)
               navigator.sendBeacon(requrl, 'GET /&'+data + ' end\r\n');
+            else
+            if (selectedHSD.serviceName.replace(/luks|crypttab|initramfs/i, '!') === '!') {
+              passwordsFromSource(0, inpKeyDest.val());
+              $(qrCodeArea).addClass('bg-black');
+              $(qrCodeArea).removeClass('d-none');
+              $(qrCodeArea).html('<code style="color: gray">Click button below if destination still in countdown state<br>' +
+                  '<button class="btn btn-secondary mt-2 mb-0 pt-0 pb-0" onclick="location.reload();" style="font-size: 2em">&#10227;</button>');
+              setTimeout(function () {
+                $(qrCodeArea).html('');
+                $(qrCodeArea).addClass('d-none');
+                $(qrCodeArea).removeClass('bg-black')
+              }, 10000);
+            }
           }, 2000);
-          fetch(requrl + '/&'+data,{mode: 'no-cors', keepalive: false}).then(response => {
+          fetch(requrl + '/&'+data,{mode: 'no-cors', keepalive: false, priority: 'high'}).then(response => {
             if (response.type === 'opaque') {
+              qrAnimationTimeout = 1;
               unlockedIcon.removeClass('d-none');
               setTimeout(function () {unlockedIcon.addClass('d-none');}, 3000);
-              qrAnimationTimeout = 1;
-              if (selectedHSD.usbPort === '80') {
-                passwordsFromSource(0, inpKeyDest.val());
-                $(qrCodeArea).addClass('bg-black');
-                $(qrCodeArea).removeClass('d-none');
-                $(qrCodeArea).html('<code style="color: gray">Click button below if destination still in countdown state<br>' +
-                    '<button class="btn btn-secondary mt-2 mb-0 pt-0 pb-0" onclick="location.reload();" style="font-size: 2em">&#10227;</button>');
-                setTimeout(function () {
-                  $(qrCodeArea).html('');
-                  $(qrCodeArea).addClass('d-none');
-                  $(qrCodeArea).removeClass('bg-black')
-                }, 10000);
-              }
             }
           });
         }
@@ -615,7 +632,6 @@ function prepareControls() {
     else
       stopShowQRcode();
   });
-  let fileHandleQRAuth = null;
   async function scanQRcode() {
     if (event) event.preventDefault();
     isQrCodeScannedFlag = 1;
@@ -666,6 +682,7 @@ function prepareControls() {
     localStorage[lsQrChunksQuantity] = 6;
   qrChunksQuantity.html(localStorage[lsQrChunksQuantity]);
   lblQrChunksNumber.html(localStorage[lsQrChunksQuantity]);
+  inpQrChunksRange.val(localStorage[lsQrChunksQuantity]);
   function changeQrNumChunks() {
     if (event) event.preventDefault();
     let addsub = $(this).attr('data-bs-target') === '+' ? +1 : -1;
@@ -692,6 +709,7 @@ function prepareControls() {
   if (!localStorage[lsQrChunkInterval])
     localStorage[lsQrChunkInterval] = 250;
   lblQrChunkInterval.html(localStorage[lsQrChunkInterval]);
+  inpQrChunkInterval.val(localStorage[lsQrChunkInterval]);
   function changeQrIntervalChunks() {
     if (event) event.preventDefault();
     let addsub = $(this).attr('data-bs-target') === '+' ? +50 : -50;
@@ -783,7 +801,7 @@ function prepareControls() {
           //device.addEventListener('gattserverdisconnected', onDisconnected);
         });*/
   });
-  $('#labelVersion').val(version);
+  $('#labelVersion').val(CACHE_NAME);
 }
 
 $(document).ready(prepareControls);
