@@ -503,6 +503,7 @@ function prepareControls() {
           unlockButtonSaveNewPassword = true;
           hsd['applyNewKey'] = inpNewPassword.val();
         }
+        localStorage[lsHSD] = JSON.stringify(objHSD);
         localStorage[lsSelectedHSD] = arr[0]+'_'+arr[1]+'_'+arr[2];
         let dest = selectedHSD.path;
         if (isNewDest)
