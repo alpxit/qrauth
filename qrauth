@@ -81,7 +81,7 @@ echo "QR data: [$PUBKEY]">$TTY
 qrencode -m 2 -t ANSI256UTF8 "$PUBKEY">$TTY
 CC=`str2OTPsecret $PUBKEY | oathtool -c 1 -d 6 -b --hotp -`
 CC="${CC:0:3}-${CC:3}"
-echo "QRC data control code:  $CC  :  $CC  :  $CC  :  $CC  :  $CC  :  $CC  :  $CC">$TTY
+echo "QRC data control code:  $CC : $CC : $CC : $CC : $CC : $CC  :  $CC">$TTY
 echo "and now 62 countdown seconds of waiting the passkey via QR codes (or press Ctrl+C)...">$TTY
 
 
@@ -132,7 +132,7 @@ terminate() {
   rm -f $TERMFLAG 2>$NUL 1>$NUL
 
   if [ -z "$1" ]; then
-    echo "Terminated.">$TTY
+    echo -e "Terminated.\n">$TTY
     exit 1
   fi
 }
@@ -185,7 +185,7 @@ TIMEOUT=62
   fi
  done
  echo ".">$zbarfifo
- if [ $TIMEOUT -eq 0 ]; then echo "...timeout exceeded.">$TTY; fi
+ if [ $TIMEOUT -eq 0 ]; then echo -e "...timeout exceeded.\n">$TTY; fi
 )&
 TIMEOUTPID=$!
 
@@ -251,15 +251,13 @@ if [ ! -z "$ISKEYID" ]; then
   NEWPASS=${PASSKEY##*$NL}
   echo -n "$CURRPASS" | sudo -S -v 2>$NUL 1>$NUL
   if [ "$?" -ne 0 ]; then
-  echo "">$TTY
-  echo "### !!! The received password is not valid, try again !!! ###" >$TTY
+  echo -e "\n### !!! The received password is not valid, try again !!! ###\n" >$TTY
   else
     if [ "$CURRPASS" != "$NEWPASS" ]; then
       echo "$WHOAMI:$NEWPASS" | sudo chpasswd >$TTY
-      echo "New password for $WHOAMI is applied" >$TTY
+      echo -e "\n!!! New password for $WHOAMI is applied !!!\n" >$TTY
     fi
-    echo "">$TTY
-    echo "Now may execute \"sudo -i\" to get the root... (15sec)" >$TTY
+    echo -e "\n... Now may execute \"sudo -i\" to get the root... (15sec)\n" >$TTY
   fi
 fi
 else

@@ -280,7 +280,7 @@ function prepareControls() {
       colorLight : "#ffffff",
       correctLevel : QRCode.CorrectLevel.H
     });
-    labelOTPcode.html(qrc);
+    labelOTPcode.html(qrc.slice(0, qrc.length>>1)+'-'+qrc.slice(qrc.length>>1));
 
     if (!$(qrCodeArea).hasClass('d-none')) {
       if (selectedHSD.usbIP !== '0.0.0.0') {
