@@ -33,3 +33,12 @@ self.addEventListener('activate', (event) => {
       }).then(() => self.clients.claim())
   );
 });
+
+self.addEventListener('fetch', (event) => {
+    if (event.request.url.startsWith('http://10.'))
+        return;
+    event.respondWith(
+        caches.match(event.request).then((cachedResponse) => {
+        return cachedResponse || fetch(event.request);
+    }));
+});
