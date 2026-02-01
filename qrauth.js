@@ -804,7 +804,6 @@ function prepareControls() {
       if (resp.ok) {
         resp.text().then(data => {
           let vers = data.replace(/\n/g,'').replace(/^.*CACHE_NAME = '/,'').replace(/'.*/g,'');
-          console.log(vers);
           let labelVersion = $('#labelVersion');
           let btnUpdateVersion = $('#btnUpdateVersion');
           labelVersion.val(cacheNames[0]);
@@ -818,6 +817,9 @@ function prepareControls() {
           }
         });
       }
+    }).catch(function (error) {
+      labelVersion.val(cacheNames[0]);
+      console.log(error);
     });
   });
 }
