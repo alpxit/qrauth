@@ -155,7 +155,7 @@ while read -r GET; do
   "GET /&"*)
    data=${GET##*&}
    QRDATA=${data% *}
-   echo -e "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\nAccess-Control-Allow-Origin: *\r\n\r\nOK" >$http
+   echo -e "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\nAccess-Control-Allow-Origin: *\r\n\r\nOK" >$httpfifo
    QRdataComplete $QRDATA
    break
    ;;
