@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <meta name="viewport" content="width=device-width">
   <meta name="theme-color" content="#FFFFFF">
   <meta charset="UTF-8">
   <title>QR Authentication</title>
@@ -17,16 +18,22 @@
   <style>
     .bg-success-highlight {background-color: rgb(0, 255, 0, 0.55);}
     .text-success-highlight {color: #00ff00;}
-    input::placeholder {font-size: 0.75em; position: relative; top: -1px}
+    .card label {font-size: 0.6em !important;}
+    .input-group {height: 1.44em !important;}
+    .input-group input {height: 1.97em !important; font-size: 0.7em !important; padding: 0 0.4em !important;}
+    .input-group button {height: 1.58em !important; line-height: 0; padding: 0.1em 0.4em !important;}
+    .form-range {height: 1em !important;}
+    .d-flex button {
+      position: relative;
+      top: -0.9em;
+    }
+    input::placeholder {font-size: 0.9em; color: yellow}
     .form-label {font-size: 0.7em}
     #selHstSrvDst li {
       font-size: small;
     }
-    #btnUpdateVersion {
-      font-size: 1em;
-      color: black;
-      line-height: 0;
-      padding-top: 3px !important;
+    #btnKeyDestList {
+      height: 1.58em !important;
     }
     #btnUsbModemSettings {
       text-decoration: none;
@@ -36,23 +43,49 @@
       margin-left: 1.2em !important;
       padding: 0.3em 0.3em 0.2em !important;
       border-width: 1px !important;
+      border-style: dotted;
       position: relative;
       top: -0.3em !important;
     }
+    #btnRevertPreviousPassword {
+      display: flex;
+      align-items: flex-start;
+    }
+    #btnRevertPreviousPassword span {
+      display: inline-block;
+      transform: scale(1.5);
+      position: relative;
+      top: 0.5em;
+    }
+    #btnAutoGenerateNewPassword span {
+      font-size: 1.5em;
+      position: relative;
+      top: 0.02em;
+    }
+    #btnUpdateVersion {
+      font-size: 1em;
+      line-height: 0;
+      height: 0.96em !important;
+      width: 1.1em !important;
+    }
     #btnUpdateVersion span {
-      vertical-align: super;
+      position: relative;
+      top: -0.08em !important;
+      left: -0.5em;
+      padding: 0 0.1em;
+      margin-top: 0.3em;
     }
   </style>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js')
-        .then(registration => console.log('Service Worker Registered', registration))
+        //.then(registration => console.log('Service Worker Registered', registration))
         .catch(error => console.error('Service Worker Registration Failed', error));
     }
   </script>
 </head>
 <body data-bs-theme="dark" style="width: 21em">
-<div id="mainContainer" class="container m-0 p-1">
+<div id="mainContainer" class="container m-0 p-1 pb-0">
   <div id="alertIncomatibleQRCodePanel" class="alert alert-danger small mb-1 d-none" role="alert">
     <h6 class="alert-heading">Incompatible QR code
       <button id="btnCloseAlertIncomatibleQRCodePanel" data-bs-target="#alertIncomatibleQRCodePanel"
@@ -100,8 +133,8 @@
           <li><a class="dropdown-item" href="#">Open/Save file...</a></li>
         </ul>
       </div>
-      <label for="inpCurrentPassword" class="form-label m-0 p-0 d-inline-block w-100">
-        The current valid password key for the destination
+      <label for="inpCurrentPassword" class="form-label m-0 p-0">
+        The current valid passkey for the destination
       </label>
       <br>
       <div class="input-group input-group-sm">
@@ -109,15 +142,16 @@
                placeholder="Enter key or insert it from existed dest..ion in the list"/>
         <button class="btn btn-outline-secondary text-success-highlight bg-black d-none" id="labelOTPcode" data-bs-target="#inpCurrentPassword"></button>
         <button class="btn btn-outline-secondary d-none" id="btnClearPassword">&#10060;</button>
-        <button class="btn btn-outline-secondary d-none" id="btnRevertPreviousPassword" style="line-height: 0;">
-          <span style="font-size: x-large;">&#8634;</span></button>
+        <button class="btn btn-outline-secondary d-none" id="btnRevertPreviousPassword"><span>&#8634;</span></button>
         <button class="btn btn-outline-secondary" id="btnShowCurrentPassword" data-bs-target="#inpCurrentPassword">&#x1F441;</button>
       </div>
+      <div id="areaNewPassword">
       <label for="inpNewPassword" class="form-label mb-0">
-        Change the current password to a new <i id="lblNewPasswordsLength"></i>
+        Change the current passkey to a new <i id="lblNewPasswordsLength"></i>
+        <br>
       </label>
-      <br>
-      <div class="input-group input-group-sm mb-3">
+      <div class="input-group input-group-sm">
+        <button class="btn btn-outline-secondary" id="btnAutoGenerateNewPassword"><span>&check;</span></button>
         <button class="btn btn-outline-secondary" id="btnGenerateNewPassword">&#127922;</button>
         <input id="inpNewPassword" type="password" class="form-control"
                placeholder="Enter a new key or generate random by dice"/>
@@ -125,6 +159,8 @@
         <button class="btn btn-outline-secondary d-none" type="submit" id="btnSaveNewPassword">&#128190;</button>
         <button class="btn btn-outline-secondary" id="btnShowNewPassword" data-bs-target="#inpNewPassword">&#x1F441;</button>
       </div>
+      </div>
+      <hr class="mb-0 mt-0 invisible" style="height: 0.9em;">
       <button id="btnScanSessionPubkey" type="button" class="btn btn-lg btn-secondary mb-2 pe-2 ps-2 ms-2" style="width: 6em;">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi float-start" viewBox="0 0 16 16">
           <path d="M0 .5A.5.5 0 0 1 .5 0h3a.5.5 0 0 1 0 1H1v2.5a.5.5 0 0 1-1 0zm12 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V1h-2.5a.5.5 0 0 1-.5-.5M.5 12a.5.5 0 0 1 .5.5V15h2.5a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H15v-2.5a.5.5 0 0 1 .5-.5M4 4h1v1H4z"/>
@@ -179,37 +215,73 @@
     <div class="card">
       <div class="card-body m-0 p-2 pt-1">
         <div class="row">
-          <label for="inpQrChunksRange" class="form-label mb-0 mt-2" style="font-size: 0.7em">
-            Number of transmitting QR parts: <b id="lblQrChunksNumber">6</b>
+          <label for="inpQrChunksNumber" class="form-label mb-0 mt-1" style="font-size: 0.7em">
+            Number of QR parts: <b id="lblQrChunksNumber">6</b>
             <span class="float-end me-5 pe-4">[1..62/1]</span>
           </label>
           <div class="d-flex">
-            <input id="inpQrChunksRange" type="range" class="form-range me-2" min="1" max="62" value="6">
-            <button id="btnQrChunksMinus" class="btn btn-sm btn-primary m-0 me-2 pb-0 pt-0 pe-2 ps-2" data-bs-target="-">&minus;</button>
-            <button id="btnQrChunksPlus" class="btn btn-sm btn-primary m-0 pb-0 pt-0 pe-2 ps-2" data-bs-target="+">&plus;</button>
+            <input id="inpQrChunksNumber" type="range" class="form-range me-2" min="1" max="62" step="1" value="6">
+            <button class="btn btn-sm btn-primary m-0 me-2 pb-0 pt-0 pe-2 ps-2" data-bs-target="QrChunksNumber">&minus;</button>
+            <button class="btn btn-sm btn-primary m-0 pb-0 pt-0 pe-2 ps-2" data-bs-target="QrChunksNumber">&plus;</button>
           </div>
         </div>
         <div class="row">
-          <label for="inpQrChunkInterval" class="form-label mb-0 mt-2" style="font-size: 0.7em">
-            Display time per QR part: <b id="lblQrChunkInterval">250 ms</b>
+          <label for="inpQrChunkInterval" class="form-label mb-0 mt-1" style="font-size: 0.7em">
+            QR part display interval: <b id="lblQrChunkInterval">250</b> ms
             <span class="float-end me-5 pe-4">[50..950/50]</span>
           </label>
           <div class="d-flex">
             <input id="inpQrChunkInterval" type="range" class="form-range me-2" min="50" max="950" step="50" value="250">
-            <button id="btnQrChunkIntervalMinus" class="btn btn-sm btn-primary m-0 me-2 pb-0 pt-0 pe-2 ps-2" data-bs-target="-">&minus;</button>
-            <button id="btnQrChunkIntervalPlus" class="btn btn-sm btn-primary m-0 pb-0 pt-0 pe-2 ps-2" data-bs-target="+">&plus;</button>
+            <button class="btn btn-sm btn-primary m-0 me-2 pb-0 pt-0 pe-2 ps-2" data-bs-target="QrChunkInterval">&minus;</button>
+            <button class="btn btn-sm btn-primary m-0 pb-0 pt-0 pe-2 ps-2" data-bs-target="QrChunkInterval">&plus;</button>
           </div>
         </div>
+        <hr class="mt-1 mb-0">
         <div class="row mt-3 ms-0">
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" role="switch" id="switcherAutoGenNewPassword" disabled>
             <label class="form-check-label" for="switcherAutoGenNewPassword"
-                   style="font-size: 0.7em; line-height: 1.2em; position: relative; top: 0.1em">
-              Change the current password to a new<br>random one in each session. (<b id="lblAutoRandomPasswordLength">16</b> chars)</label>
+                   style="font-size: 0.6em; line-height: 1.2em; position: relative; top: 0.1em">
+              Change the current passkey to a new<br>random one in each session. (<b id="lblAutoRandomPasswordLength">16</b> chars)</label>
             <div class="float-end">
             <button id="btnAutoRandomPasswordLengthMinus" class="btn btn-sm btn-primary m-0 me-1 pb-0 pt-0 pe-2 ps-2" data-bs-target="-">&minus;</button>
             <button id="btnAutoRandomPasswordLengthPlus" class="btn btn-sm btn-primary m-0 pb-0 pt-0 pe-2 ps-2" data-bs-target="+">&plus;</button>
             </div>
+          </div>
+        </div>
+        <div class="row mt-1 ms-0">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="swTSInNewPassword" data-bs-target="#inpTSInNewPassword">
+            <label class="form-check-label" for="swTSInNewPassword"
+                   style="font-size: 0.6em; line-height: 1.2em; position: relative; top: 0.1em">
+              Add timestamp label to the<br>beginning of new passkey</label>
+            <div class="input-group input-group-sm float-end" style="width: 7.4em">
+            <input id="inpTSInNewPassword" type="text" class="form-control" value="YYDDMMhhmmss:"
+                   placeholder="YYMMDDhhmmss:" data-bs-target="TSInNewPassword">
+            </div>
+          </div>
+        </div>
+        <div class="row mt-1 ms-0">
+          <div class="form-check form-switch">
+            <input class="form-check-input" type="checkbox" role="switch" id="swCCInNewPassword" data-bs-target="#inpCCInNewPassword">
+            <label class="form-check-label" for="swCCInNewPassword"
+                   style="font-size: 0.6em; line-height: 1.2em; position: relative; top: 0.1em">
+              Add HOTP control code to the<br>end of new passkey based on...</label>
+            <div class="input-group input-group-sm float-end" style="width: 8.2em">
+            <input id="inpCCInNewPassword" type="password" class="form-control"
+                   placeholder="...entered a passphrase" data-bs-target="CCInNewPassword">
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <label for="inpPasswordsStorageSize" class="form-label mb-0 mt-0" style="font-size: 0.7em">
+            History storage length per password: <b id="lblPasswordsStorageSize">32</b>
+            <span class="float-end me-5 pe-4">[8..128/8]</span>
+          </label>
+          <div class="d-flex">
+            <input id="inpPasswordsStorageSize" type="range" class="form-range me-2" min="8" step="8" max="128" value="32">
+            <button class="btn btn-sm btn-primary m-0 me-2 pb-0 pt-0 pe-2 ps-2" data-bs-target="PasswordsStorageSize">&minus;</button>
+            <button class="btn btn-sm btn-primary m-0 pb-0 pt-0 pe-2 ps-2" data-bs-target="PasswordsStorageSize">&plus;</button>
           </div>
         </div>
       </div>
@@ -218,28 +290,30 @@
   <video id="qrCodeScannerVideo" class="w-100 d-none p-3"></video>
   <div id="qrCodeImgArea" class="bg-light m-0 pt-4 pb-4 d-none" style="padding-left: 20px"></div>
   <div id="unlockedIcon" class="m-0 d-none" style="font-size: 10em; text-align: center">&#128275;</div>
+</div>
 
-  <div class="form-check form-switch mt-1 float-sm-start" style="font-size: 0.8em; position: relative; top: -0.2em">
-    <input class="form-check-input" type="checkbox" role="switch" id="switcherNetworkMode" disabled>
-    <label class="form-check-label me-1 ms-0" for="switcherNetworkMode">NET</label>
-  </div>
-  <div class="ms-2 float-sm-start mt-1" style="font-size: 0.8em; position: relative; top: -0.2em">
-    <div class="form-check form-switch float-sm-start">
-      <input class="form-check-input" type="checkbox" role="switch" id="switcherPTPMode">
-      <label class="form-check-label me-1 ms-0" for="switcherPTPMode">PTP</label>
+  <div id="toolContainer" class="container m-0 p-1 pt-0">
+    <div class="form-check form-switch mt-1 float-start" style="font-size: 0.8em; position: relative; top: -0.2em;">
+      <input class="form-check-input" type="checkbox" role="switch" id="switcherNetworkMode" disabled>
+      <label class="form-check-label me-1 ms-0" for="switcherNetworkMode">NET</label>
+    </div>
+    <div class="ms-2 float-start mt-1" style="font-size: 0.8em; position: relative; top: -0.2em;">
+      <div class="form-check form-switch float-sm-start">
+        <input class="form-check-input" type="checkbox" role="switch" id="switcherPTPMode">
+        <label class="form-check-label me-1 ms-0" for="switcherPTPMode">PTP</label>
+      </div>
+    </div>
+    <a id="btnUsbModemSettings" class="btn btn-sm btn-outline-secondary mt-0 p-0" style="font-size: 0.5em; position: relative; top: -0.2em;"
+       href="intent:#Intent;action=android.settings.SETTINGS;end">set USB<br>modem</a>
+    <div class="input-group input-group-sm p-0 m-0 mt-0 w-auto float-end" style="position: relative; top: 0.2em;">
+      <button class="btn p-0 m-0 ps-1 pe-1 btn-outline-secondary" type="button" style="font-size: 0.6em" data-bs-target="#whatTheArea"
+              id="btnShowHelp">HowTo</button>
+      <input id="labelVersion" type="text" class="form-control p-0 m-0 ps-1 pe-1"
+             style="font-weight: lighter; font-size: 0.6em !important; height: 1.6em !important; width: 4.5em; text-align: end"
+             value="v.?.?.?" aria-describedby="btnUpdateVersion" aria-label="version">
+      <button class="btn btn-sm btn-outline-secondary" type="button" id="btnUpdateVersion"><span>&#10227;</span></button>
     </div>
   </div>
-  <a id="btnUsbModemSettings" class="btn btn-sm btn-outline-secondary mt-0 p-0" style="font-size: 0.5em; position: relative; top: -0.2em"
-     href="intent:#Intent;action=android.settings.SETTINGS;end">set USB<br>modem</a>
-  <div class="input-group input-group-sm p-0 m-0 mt-0 w-auto float-end" style="position: relative; top: 0.2em;">
-    <button class="btn p-0 m-0 ps-1 pe-1 btn-outline-secondary" type="button" style="font-size: 0.6em" data-bs-target="#whatTheArea"
-            id="btnShowHelp">HowTo</button>
-    <input type="text" class="form-control p-0 m-0 ps-1 pe-1"
-           style="font-weight: lighter; font-size: x-small; width: 5em; text-align: end"
-           value="v.?.?.?" id="labelVersion" aria-describedby="btnUpdateVersion" aria-label="version">
-    <button class="btn btn-secondary p-0 m-0 ps-1 pe-1" type="button" id="btnUpdateVersion"><span>&#10227;</span></button>
-  </div>
 
-</div>
 </body>
 </html>
