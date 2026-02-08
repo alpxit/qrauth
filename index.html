@@ -75,6 +75,10 @@
       padding: 0 0.1em;
       margin-top: 0.3em;
     }
+    @media (hover: hover) {
+      #btnRevertPreviousPassword span {top: 0.65em !important;}
+      #btnUpdateVersion span {font-size: 0.8em; top: -0.04em !important;}
+    }
   </style>
   <script>
     if ('serviceWorker' in navigator) {
@@ -84,7 +88,7 @@
     }
   </script>
 </head>
-<body data-bs-theme="dark" style="width: 21em">
+<body data-bs-theme="dark" style="width: 21em; overflow: hidden">
 <div id="mainContainer" class="container m-0 p-1 pb-0">
   <div id="alertIncomatibleQRCodePanel" class="alert alert-danger small mb-1 d-none" role="alert">
     <h6 class="alert-heading">Incompatible QR code
