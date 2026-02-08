@@ -35,7 +35,7 @@ self.addEventListener('activate', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
-    if (event.request.url.startsWith('http://10.'))
+    if (event.request.url.startsWith('http://10.') || event.request.url.match(/\/sw.js\?\d+$/))
         return;
     event.respondWith(
         caches.match(event.request).then((cachedResponse) => {
