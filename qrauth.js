@@ -326,7 +326,8 @@ function prepareControls() {
       stopShowQRcode();
   }
   function resetAllControls(force) {
-    btnShowQrCode.find('svg').attr('fill', 'white');
+    lblScanQrCode.removeClass('text-black');
+    lblQrCreate.addClass('text-black');
     btnKeyDestList.addClass('btn-outline-success btn-outline-secondary');
     if (force) {
       inpKeyDest.val('');
@@ -337,10 +338,10 @@ function prepareControls() {
       btnRevertPreviousPassword.addClass('d-none');
       btnSaveNewPassword.addClass('d-none');
       btnClearNewPassword.addClass('d-none');
-      btnShowQrCode.find('svg').attr('fill', 'black');
       btnKeyDestList.removeClass('btn-outline-success');
       btnAutoGenerateNewPassword.removeClass('text-success-highlight');
       btnGenerateNewPasswor.removeClass('bg-success-highlight');
+      btnShowQrCode.find('svg').attr('fill', 'black');
     }
     btnScanSessionPubkey.find('svg').attr('fill', 'white');
     labelOTPcode.addClass('d-none');
@@ -350,9 +351,9 @@ function prepareControls() {
     progressBar.css('width', '0%');
   }
   function stopShowQRcode(stReset) {
-    resetAllControls();
     clearInterval(refreshOtpIntervalTimer);
     clearTimeout(refreshOtpTimeout);
+    resetAllControls();
     passwordsFromSource(0, inpKeyDest.val());
     preventDoubleClick = false;
     isQrCodeScannedFlag = 0;
@@ -387,6 +388,8 @@ function prepareControls() {
     if (isQrCodeScannedFlag === 2) {
       btnShowQrCode.find('svg').attr('fill', 'gray');
       btnScanSessionPubkey.find('svg').attr('fill', 'gray');
+      lblQrCreate.addClass('text-black');
+      lblScanQrCode.addClass('text-black');
       showAnimatedQRcode();
       return;
     }
@@ -489,6 +492,7 @@ function prepareControls() {
       autoGenerateNewPasswordInTheInput();
     fillPasswordInputs(selectedHSD);
     btnShowQrCode.find('svg').attr('fill', 'yellow');
+    lblQrCreate.removeClass('text-black');
     btnScanSessionPubkey.find('svg').attr('fill', 'yellow');
     //$('#areaNewPassword').removeClass('d-none');
     isQrCodeScannedFlag = 2;
@@ -641,7 +645,7 @@ function prepareControls() {
           $(qrImgPool[activeQrImgIdx+1]).removeClass('d-none');
           if (--qrAnimationTimeout <= 0) {
             resetAllControls();
-            btnShowQrCode.find('svg').attr('fill', colorHighlightSuccess);
+            btnShowQrCode.find('svg').attr('fill', $('.bg-success').css('backgroundColor'));
             clearInterval(qrInterval);
             isQrCodeScannedFlag = 0;
             passwordsFromSource(0, inpKeyDest.val());
@@ -683,7 +687,12 @@ function prepareControls() {
       } catch (e) {
       }
     } else
-      scanner.start().then(() => {});
+      scanner.start().then(() => {
+        setTimeout(function () {
+          let mainRatio = window.innerWidth / $('body').width();
+          $('.scan-region-highlight').css('left', Math.floor($('.scan-region-highlight')[0].offsetLeft/mainRatio) + 'px');
+        },100)
+      });
     progressBar.removeClass('bg-success');
     progressBar.addClass('bg-warning');
     activateProgressBar(15, 15, function () { // stop scanner cam in 15s of inactivity
@@ -916,8 +925,9 @@ function prepareControls() {
     }
   });
 
-  let b = $('body');
-  b.css('zoom', Math.floor(window.innerWidth*100/b.width()) + '%');
+  let mainRatio = window.innerWidth / $('body').width();
+  let ratio = (mainRatio > 2) ? 2 : mainRatio;
+  $('body').css({'transform': `scale(${ratio})`});
 }
 
 $(document).ready(prepareControls);
