@@ -927,6 +927,8 @@ function prepareControls() {
 
   let mainRatio = window.innerWidth / $('body').width();
   let ratio = (mainRatio > 2) ? 2 : mainRatio;
+  if (window.innerWidth / $('body').width() / ratio > 1)
+    ratio *= window.innerHeight / $('body').width() / ratio / 2;
   $('body').css({'transform': `scale(${ratio})`});
 }
 
