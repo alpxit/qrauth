@@ -36,6 +36,11 @@
       position: relative;
       top: -0.9em;
     }
+    #scrlocationbtns label {
+      font-size: x-small;
+      padding: 0.2em 0.7em !important;
+      margin: 0 !important;
+    }
     input::placeholder {font-size: 0.9em; color: yellow}
     .form-label {font-size: 0.7em}
     #selHstSrvDst li {
@@ -147,10 +152,10 @@
                placeholder="leave empty to not decrypt/encrypt the file data"/>
         <button class="btn btn-outline-secondary" id="btnShowSaveFilePassword" data-bs-target="#inpFileDataPassword">&#x1F441;</button>
       </div>
-      <button id="btnOpenFile" class="btn btn-outline-danger btn-lg mt-2">&#128228;&nbsp; Open</button>
-      <button id="btnSaveFile" class="btn btn-outline-success btn-lg mt-2">Save &nbsp;&#128229;</button>
+      <button id="btnOpenFile" class="btn btn-outline-danger mt-2">&#128228;&nbsp; Open</button>
+      <button id="btnSaveFile" class="btn btn-outline-success mt-2">Save &nbsp;&#128229;</button>
       <button id="btnCloseOpenSaveFileArea" data-bs-target="#openSaveFileArea"
-              class="btn btn-outline-secondary btn-lg mt-2 float-end">&#128076;</button>
+              class="btn btn-outline-secondary mt-2 float-end">&#128076;</button>
     </div>
   </div>
 
@@ -279,8 +284,24 @@
             <button class="btn btn-sm btn-primary m-0 pb-0 pt-0 pe-2 ps-2" data-bs-target="QrChunkInterval">&plus;</button>
           </div>
         </div>
-        <hr class="mt-1 mb-0">
-        <div class="row mt-3 ms-0">
+        <div class="row">
+          <label class="form-label m-0 pe-0 float-start w-auto" for="scrlocationbtns"
+                 style="font-size: 0.7em; position: relative; top: 0.3em;">
+            QR code screen location:
+          </label>
+          <div id="scrlocationbtns" class="btn-group w-auto float-end" role="group">
+            <input type="radio" class="btn-check"   id="btnradio0" name="btnradio" autocomplete="off" checked>
+            <label class="btn btn-outline-primary" for="btnradio0">Default</label>
+            <input type="radio" class="btn-check"   id="btnradio1" name="btnradio" autocomplete="off" disabled>
+            <label class="btn btn-outline-primary" for="btnradio1">Top</label>
+            <input type="radio" class="btn-check"   id="btnradio2" name="btnradio" autocomplete="off" disabled>
+            <label class="btn btn-outline-primary" for="btnradio2">Center</label>
+            <input type="radio" class="btn-check"   id="btnradio3" name="btnradio" autocomplete="off" disabled>
+            <label class="btn btn-outline-primary" for="btnradio3">Bottom</label>
+          </div>
+        </div>
+        <hr class="mt-2 mb-0">
+        <div class="row mt-2 ms-0">
           <div class="form-check form-switch">
             <input class="form-check-input" type="checkbox" role="switch" id="switcherAutoGenNewPassword" disabled>
             <label class="form-check-label" for="switcherAutoGenNewPassword"
@@ -298,7 +319,7 @@
             <label class="form-check-label" for="swTSInNewPassword"
                    style="font-size: 0.6em; line-height: 1.2em; position: relative; top: 0.1em">
               Add timestamp label to the<br>beginning of new passkey</label>
-            <div class="input-group input-group-sm float-end" style="width: 7.4em">
+            <div class="input-group input-group-sm float-end" style="width: 7em !important;">
             <input id="inpTSInNewPassword" type="text" class="form-control" value="YYDDMMhhmmss:"
                    placeholder="YYMMDDhhmmss:" data-bs-target="TSInNewPassword">
             </div>
@@ -310,7 +331,7 @@
             <label class="form-check-label" for="swCCInNewPassword"
                    style="font-size: 0.6em; line-height: 1.2em; position: relative; top: 0.1em">
               Add HOTP control code to the<br>end of new passkey based on...</label>
-            <div class="input-group input-group-sm float-end" style="width: 8.2em">
+            <div class="input-group input-group-sm float-end" style="width: 7em !important;">
             <input id="inpCCInNewPassword" type="password" class="form-control"
                    placeholder="...entered a passphrase" data-bs-target="CCInNewPassword">
             </div>
