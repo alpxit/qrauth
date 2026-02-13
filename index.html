@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" xmlns="http://www.w3.org/1999/html">
 <head>
   <meta name="viewport" content="width=320">
   <meta name="theme-color" content="#FFFFFF">
@@ -49,6 +49,21 @@
     #btnKeyDestList {
       height: 1.57em !important;
     }
+    #btnShowQrCode {
+      position: relative;
+      top: -0.7em;
+      right: -0.1em;
+      background-color: black !important;
+      box-shadow: 0 0 1em 0.5em black;
+    }
+    #btnScanSessionPubkey {
+      position: absolute;
+      top: 0.6em;
+      left: 0.5em;
+      z-index: 100;
+      background-color: black !important;
+      box-shadow: 0 0 1em 0.5em black;
+    }
     #btnUsbModemSettings {
       text-decoration: none;
       color: white;
@@ -78,16 +93,11 @@
     }
     #btnUpdateVersion {
       font-size: 1em;
-      line-height: 0;
-      height: 0.94em !important;
-      width: 1.1em !important;
+      line-height: 0.4em;
+      padding: 0.25em 0.1em 0.4em 0.1em;
     }
     #btnUpdateVersion span {
-      position: relative;
-      top: -0.08em !important;
-      left: -0.5em;
-      padding: 0 0.1em;
-      margin-top: 0.3em;
+      padding-left: 0.1em;
     }
     #btnSettings {
       font-size: 1.2em;
@@ -116,9 +126,9 @@
       line-height: 1.1em;
       text-align: right;
     }
-    @media (hover: hover) {
+    @media (hover: hover) { /*desktop*/
       #btnRevertPreviousPassword span {top: 0.65em !important;}
-      #btnUpdateVersion span {font-size: 0.8em; top: -0.04em !important;}
+      #btnUpdateVersion {line-height: 0.3em; padding-top: 0.45em}
     }
   </style>
   <script>
@@ -162,7 +172,7 @@
   <form action="#" method="post">
   <div id="cardArea" class="card">
     <div class="card-body m-0 p-0 ms-2 me-2 mb-1">
-      <button id="btnScanSessionPubkey" type="button" class="btn btn-outline bg-dark p-0 m-0" style="position: absolute; top: 0.6em; z-index: 100">
+      <button id="btnScanSessionPubkey" type="button" class="btn btn-outline bg-dark p-0 m-0">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi float-start" viewBox="0 0 16 16">
           <path d="M0 .5A.5.5 0 0 1 .5 0h3a.5.5 0 0 1 0 1H1v2.5a.5.5 0 0 1-1 0zm12 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V1h-2.5a.5.5 0 0 1-.5-.5M.5 12a.5.5 0 0 1 .5.5V15h2.5a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5m15 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H15v-2.5a.5.5 0 0 1 .5-.5M4 4h1v1H4z"/>
           <path d="M7 2H2v5h5zM3 3h3v3H3zm2 8H4v1h1z"/>
@@ -206,7 +216,7 @@
         <button class="btn btn-outline-secondary d-none" id="btnRevertPreviousPassword"><span>&#8634;</span></button>
         <button class="btn btn-outline-secondary" id="btnShowCurrentPassword" data-bs-target="#inpCurrentPassword">&#x1F441;</button>
       </div>
-      <button id="btnShowQrCode" type="submit" class="btn btn-outline bg-dark m-0 p-0 float-end" style="position: relative; top: -0.7em; right: -0.1em">
+      <button id="btnShowQrCode" type="submit" class="btn btn-outline bg-dark m-0 p-0 float-end">
         <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="black" class="bi" viewBox="0 0 16 16">
           <path d="M2 2h2v2H2z"/>
           <path d="M6 0v6H0V0zM5 1H1v4h4zM4 12H2v2h2z"/>
@@ -370,15 +380,12 @@
     <a id="btnUsbModemSettings" class="btn btn-sm btn-outline-secondary mt-0 p-0"
        style="font-size: 0.5em; position: relative; top: -0.2em;"
        href="intent:#Intent;action=android.settings.SETTINGS;end">set USB<br>modem</a>
+    <button id="btnShowHelp" class="btn p-0 m-0 ms-1 ps-1 pe-1 btn-outline" type="button" data-bs-target="#whatTheArea"
+            style="font-size: 0.8em; position: relative; top: -0.2em" >INFO</button>
 
-    <div class="input-group input-group-sm p-0 m-0 mt-0 w-auto float-end" style="position: relative; top: 0.2em;">
-      <button class="btn p-0 m-0 ps-1 pe-1 btn-outline-secondary" type="button" style="font-size: 0.6em" data-bs-target="#whatTheArea"
-              id="btnShowHelp">HowTo</button>
-      <input id="labelVersion" type="text" class="form-control p-0 m-0 ps-1 pe-1"
-             style="font-weight: lighter; font-size: 0.6em !important; height: 1.56em !important; width: 4.5em; text-align: end"
-             value="v.?.?.?" aria-describedby="btnUpdateVersion" aria-label="version">
-      <button class="btn btn-sm btn-outline-secondary" type="button" id="btnUpdateVersion"><span>&#10227;</span></button>
-    </div>
+    <button id="btnUpdateVersion" class="btn btn-outline-secondary text-warning fw-bold float-end d-none" type="button"><span>&#10227;</span></button>
+    <button id="labelVersion" class="btn btn-outline m-0 me-1 ms-2 p-0 float-end"
+            style="font-size: 0.6em !important; color: silver">v.1.0.0</button>
   </div>
 
 </body>

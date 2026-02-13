@@ -945,7 +945,7 @@ function prepareControls() {
   let labelVersion = $('#labelVersion');
   let btnUpdateVersion = $('#btnUpdateVersion');
   caches.keys().then(async function (cacheNames) {
-    labelVersion.val(cacheNames[0]);
+    labelVersion.html(cacheNames[0]);
     if (navigator.onLine) {
       try {
         const response = await fetch('./sw.js?'+Date.now(), {priority: 'low', cache: 'no-store'});
@@ -954,7 +954,7 @@ function prepareControls() {
             let vers = data.replace(/\n/g,'').replace(/^.*CACHE_NAME = '/,'').replace(/'.*/g,'');
             if (vers !== cacheNames[0]) {
               labelVersion.addClass('text-warning');
-              btnUpdateVersion.addClass('text-warning fw-bold');
+              btnUpdateVersion.removeClass('d-none');
               btnUpdateVersion.click(function () {
                 caches.delete(cacheNames);
                 location.reload(true);
