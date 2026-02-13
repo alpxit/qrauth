@@ -156,12 +156,13 @@ while read -r GET; do
    data=${GET##*&}
    QRDATA=${data% *}
    echo -e "HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\nAccess-Control-Allow-Origin: *\r\n\r\nOK" >$httpfifo
+   echo " > catched by USB modem channel <">$TTY
    QRdataComplete $QRDATA
+   echo ".">$zbarfifo
    break
    ;;
  esac
 done
-echo ".">$zbarfifo
 } &
 FIFOPID=$!
 fi
@@ -179,6 +180,7 @@ TIMEOUT=62
     QRDATA=`gphoto2 -q --force-overwrite -f $PTPPATH -p $QRAUTHFN --stdout 2>$TTY`
     DATASIZE=${#QRDATA}
     if [ ! -z "$QRDATA" -a $DATASIZE -gt $ISPTPMODE ]; then
+      echo " > catched by USB PTP channel <">$TTY
       QRdataComplete $QRDATA
       gphoto2 -q -f $PTPPATH -d $QRAUTHFN 2>$NUL 1>$NUL
       break
@@ -236,6 +238,7 @@ while read -r QRCHUNK <$zbarfifo; do
       LEN=$((LEN-1))
     done
 
+    echo " > catched by Camera channel <">$TTY
     QRdataComplete $QRDATA
     break
   fi
