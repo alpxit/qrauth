@@ -131,7 +131,7 @@ function prepareControls() {
   let lbl3ClickDeleteDestination = $('#lbl3ClickDeleteDestination');
   btnClearKeyDestination.click(function () {
     event.preventDefault();
-    lbl3ClickDeleteDestination.html((3-(--tripleClick)).toString()+'/3');
+    lbl3ClickDeleteDestination.html('click '+(3-(--tripleClick)).toString()+'/3');
     if (tripleClick > 0) {
       lbl3ClickDeleteDestination.removeClass('d-none');
       if (tripleClickTimer) clearTimeout(tripleClickTimer);
@@ -870,7 +870,7 @@ function prepareControls() {
   let lbl3ClickDeleteNewPassword = $('#lbl3ClickDeleteNewPassword');
   btnClearNewPassword.click(function () {
     event.preventDefault();
-    lbl3ClickDeleteNewPassword.html((3-(--tripleClick)).toString()+'/3');
+    lbl3ClickDeleteNewPassword.html('click '+(3-(--tripleClick)).toString()+'/3');
     if (tripleClick > 0) {
       lbl3ClickDeleteNewPassword.removeClass('d-none');
       if (tripleClickTimer) clearTimeout(tripleClickTimer);
@@ -924,6 +924,19 @@ function prepareControls() {
     } catch (err) {console.error(err);}
   });
 
+  //setQrCodePosition(null, localStorage['QrCodePosition']);
+  $('#qrCodePositionBtns input').click(function () {
+    let tgt = $(this).attr('data-bs-target');
+    let cssobj = {position: tgt === 'D' ? 'relative' : 'fixed'}
+    cssobj['transform'] = (tgt === 'M') ? 'translateY(-50%)' : 'none';
+    cssobj['top'] = (tgt === 'M') ? '50%' : 'unset';
+    cssobj['top'] = (tgt === 'T') ? 0 : 'unset';
+    cssobj['bottom'] = (tgt === 'B') ? 0 : 'unset';
+    $(qrCodeArea).css(cssobj);
+    localStorage['QrCodePosition'] = tgt;
+  });
+  if (localStorage['QrCodePosition'])
+    $('#qrCodePositionBtns input[data-bs-target=' + localStorage['QrCodePosition'] + ']').click();
 
   $('#btnPubkeyByUSB').click(async function () {
     /* TODO: may be next time...

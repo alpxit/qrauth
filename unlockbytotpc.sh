@@ -3,7 +3,8 @@
 # but if qr scanner works fine, a keylogger is optional
 
 LOGPATH=/tmp/watchtotp.log
-SESSIONID=`loginctl list-sessions | grep alpx | awk '{print $1}'`
+UN=$(whoami)
+SESSIONID=`loginctl list-sessions | grep $UN | awk '{print $1}'`
 TOTPKEYID=$(keyctl show | grep TOTPKEY | awk '{print $1}')
 ENTEREDTOTP="******"
 
