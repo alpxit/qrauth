@@ -218,7 +218,7 @@ function prepareControls() {
           let theData = thePass === '.' ? localStorage[lsHSD] : age.armor.encode(encryptedData);
           try {
             const handle = await window.showSaveFilePicker({
-              suggestedName: 'qrauth-' + YYYYMMDDHHmmSS() + (thePass === '.' ? '.json' : '.age'),
+              suggestedName: 'extAuth-' + YYYYMMDDHHmmSS() + (thePass === '.' ? '.json' : '.age'),
             });
             const writable = await handle.createWritable();
             await writable.write(theData);
@@ -332,9 +332,9 @@ function prepareControls() {
             stopShowQRcode();
         });
       } else
-      if (switcherPTPMode[0].checked && fileHandleQRAuth) {
+      if (switcherPTPMode[0].checked && fileHandleExtAuth) {
         try {
-          const writable = await fileHandleQRAuth.createWritable();
+          const writable = await fileHandleExtAuth.createWritable();
           await writable.write(qrc);
           await writable.close();
         } catch (err) {
@@ -528,7 +528,7 @@ function prepareControls() {
   }
   let unlockedIcon = $('#unlockedIcon');
   let qrAnimationTimeout = 0;
-  let fileHandleQRAuth = null;
+  let fileHandleExtAuth = null;
   function showAnimatedQRcode() {
     let w = $('#mainContainer').width();
     let arr = inpKeyDest.val().split('/');
@@ -563,15 +563,15 @@ function prepareControls() {
         if (switcherPTPMode[0].checked) {
           $(qrCodeArea).addClass('d-none');
           try {
-            //const handle = await window.showSaveFilePicker({suggestedName: 'qrauth.txt', types: [{accept: {'text/plain': '.txt'}}]});
-            const writable = await fileHandleQRAuth.createWritable();
+            //const handle = await window.showSaveFilePicker({suggestedName: 'extAuth.txt', types: [{accept: {'text/plain': '.txt'}}]});
+            const writable = await fileHandleExtAuth.createWritable();
             await writable.write(data);
             await writable.close();
             let pollingTimerHandle = setTimeout(async function () {
               if (!refreshOtpIntervalTimer)
                 clearTimeout(pollingTimerHandle);
               try {
-                const file= await fileHandleQRAuth.getFile();
+                const file= await fileHandleExtAuth.getFile();
               } catch (e) {
                 if (e.name === 'NotFoundError') {
                   clearInterval(refreshOtpIntervalTimer);
@@ -700,9 +700,9 @@ function prepareControls() {
     btnShowHelp.removeClass('bg-primary');
     if (switcherPTPMode[0].checked) {
       try {
-        [fileHandleQRAuth] = await window.showOpenFilePicker({suggestedName: 'qrauth.txt', types: [{accept: {'image/png': '.png', 'text/plain': '.txt'}}]});
-        if (fileHandleQRAuth) {
-          const file = await fileHandleQRAuth.getFile();
+        [fileHandleExtAuth] = await window.showOpenFilePicker({suggestedName: 'extAuth.txt', types: [{accept: {'image/png': '.png', 'text/plain': '.txt'}}]});
+        if (fileHandleExtAuth) {
+          const file = await fileHandleExtAuth.getFile();
           const data = await file.text();
           qrScanned({data: data});
         }

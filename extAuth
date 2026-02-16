@@ -1,7 +1,7 @@
 #!/bin/bash
 # usage examples:
-# qrauth
-# qrauth && sudo -i
+# extAuth
+# extAuth && sudo -i
 
 #set +e
 #TTY=/dev/stdout
@@ -66,7 +66,7 @@ str2OTPsecret() {
   echo -n "$OTPsecret"
 }
 
-PUBKEY=111/$HOSTNAME/qrauth/$WHOAMI/$USBIFCIP:$HTTPPORT/$PUBKEY
+PUBKEY=111/$HOSTNAME/extAuth/$WHOAMI/$USBIFCIP:$HTTPPORT/$PUBKEY
 ISPTPMODE=0
 if [ -e /usr/bin/gphoto2 ]; then
   echo -n "$PUBKEY">$QRAUTHFN
@@ -88,7 +88,7 @@ echo "and now 62 countdown seconds of waiting the passkey via QR codes (or press
 zbarfifo=/tmp/zbarcam.fifo
 rm -f $zbarfifo >$NUL
 test -e $zbarfifo || mkfifo $zbarfifo >$NUL
-httpfifo=/tmp/qrauth.http.fifo
+httpfifo=/tmp/extauth.http.fifo
 rm -f $httpfifo >$NUL
 test -e $httpfifo || mkfifo $httpfifo >$NUL
 

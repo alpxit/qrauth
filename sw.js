@@ -1,4 +1,4 @@
-const CACHE_NAME = 'v.1.4.7';
+const CACHE_NAME = 'v.1.4.8';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -11,7 +11,7 @@ const ASSETS = [
   "./frw/qrcode.min.js",
   "./frw/qr-scanner.legacy.min.js",
   "./frw/totp.js",
-  "./qrauth.js"
+  "./index.js"
 ];
 
 self.addEventListener('install', (event) => {

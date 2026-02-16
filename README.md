@@ -7,8 +7,8 @@ To test this system:
 1. open the website [QRauth](https://alpxit.github.io/qrauth/) on your smartphone (you can install it as a web app to use it offline),
 2. download qrauth shell script (+install requirements) then run it in linux console:
 ```sh
-qrauth               # to change password
-qrauth && sudo -i    # to open root (can change password at once)
+extAuth               # to change password
+extAuth && sudo -i    # to open root (can change password at once)
 ```
 
 3. click scanning button in the app page,

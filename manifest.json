@@ -1,6 +1,6 @@
 {
-  "short_name": "QRauth",
-  "name": "QR Authentication",
+  "short_name": "extAuth",
+  "name": "External Authentication",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",
