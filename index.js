@@ -80,11 +80,11 @@ function prepareControls() {
       localStorage.removeItem(lsHSD);
   } else
     objHSD = {};
-  if (isHSDnotEmpty) {
+  if (isHSDnotEmpty)
     flashDestList()
-    selHSD.append('<li><hr class="dropdown-divider"></li>');
-    selHSD.append(hsdHtmlTemplateBtn.replace('#id', 'actOpenSaveFile').replace('#html', miOpenSave));
-  }
+  selHSD.append('<li><hr class="dropdown-divider"></li>');
+  selHSD.append(hsdHtmlTemplateBtn.replace('#id', 'actOpenSaveFile').replace('#html', miOpenSave));
+
   btnAutoGenerateNewPassword.click(function () {
     event.preventDefault();
     if (selectedHSD && inpKeyDest.val()) {
@@ -189,12 +189,14 @@ function prepareControls() {
     },250);
   }
   selHSD.find('a').click(passwordsFromSource);
-  if (localStorage[lsSelectedHSD])
-    setTimeout(function () {
-      let selectedHSD = selHSD.find('#'+localStorage[lsSelectedHSD]);
+  setTimeout(function () {
+    if (localStorage[lsSelectedHSD]) {
+      let selectedHSD = selHSD.find('#' + localStorage[lsSelectedHSD]);
       if (selectedHSD.length) $(selectedHSD[0]).find('a').click();
       else localStorage.removeItem(lsSelectedHSD);
-    }, 200);
+    } else
+      btnKeyDestList.click();
+  }, 250);
 
   let openSaveFileArea = $('#openSaveFileArea');
   let inpFileDataPassword = $('#inpFileDataPassword');
@@ -246,7 +248,7 @@ function prepareControls() {
         try {
           const obj = JSON.parse(encryptedData);
           localStorage[lsHSD] = JSON.stringify(obj);
-          console.log(obj);
+          location.reload();
         } catch (error) {
           console.error("Failed to parse JSON:", error);
         }
