@@ -4,7 +4,7 @@
 
 A secure, keyboard-free authentication framework for Linux systems(ubuntu tested only), designed to eliminate the threat of hardware and visual keyloggers.
 To test this system:
-1. open the website [QRauth](https://alpxit.github.io/qrauth/) on your smartphone (you can install it as a web app to use it offline),
+1. open the website [extAuth](https://extauth.github.io/) on your smartphone (you can install it as a web app to use it offline),
 2. download qrauth shell script (+install requirements) then run it in linux console:
 ```sh
 extAuth               # to change password
@@ -56,4 +56,4 @@ Future updates will introduce additional transport channels while maintaining th
 
 📺 Demo
 
-(Coming soon: A full video demonstration of the LUKS unlocking process will be linked here.)
+First preview https://youtu.be/45_c6kTEI6A
