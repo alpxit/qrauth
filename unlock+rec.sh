@@ -28,6 +28,17 @@ ffmpeg -loglevel quiet -hide_banner -y \
 ffpid=$!
 ffpid1=$((ffpid-1))
 
+echo -n "5 sec pause before screen lock..."
+sleep 1
+echo -n "1.."
+sleep 1
+echo -n "2.."
+sleep 1
+echo -n "3.."
+sleep 1
+echo -n "4.."
+sleep 1
+echo -n "5.."
 sleep 1
 
 loginctl lock-session $SESSID
