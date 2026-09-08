@@ -72,7 +72,7 @@
       color: white;
       font-size: 0.6em;
       line-height: 0.8em;
-      margin: 0 0.8em !important;
+      margin: 0 0.2em !important;
       padding: 0.3em 0.3em 0.2em !important;
       border-width: 1px !important;
       border-style: dotted;
@@ -98,9 +98,11 @@
       font-size: 1.2em;
       line-height: 0.4em;
       padding: 0.2em 0 0.36em 0 !important;
+      margin-left: 0.1em !important;
     }
     #btnUpdateVersion span {
       padding-left: 0.1em;
+      position: relative;
     }
     #btnSettings {
       font-size: 1.1em;
@@ -176,6 +178,11 @@
     }
     .accordion-body {
       padding: 1em !important;
+    }
+    .form-switch, .form-check {
+    }
+    .form-switch .form-check-input {
+      width: 1.6em !important;
     }
   </style>
   <script>
@@ -670,15 +677,15 @@
   <div id="toolContainer" class="container m-0 p-1 pt-0">
     <div class="form-check form-switch mt-1 float-start" style="font-size: 0.8em; position: relative; top: -0.2em;">
       <input class="form-check-input" type="checkbox" role="switch" id="switcherAudioMode" disabled>
-      <label class="form-check-label me-1 ms-0" style="font-size: 1.2em; position: relative; left: -0.3em; top: -0.2em; filter: grayscale(100%);" for="switcherAudioMode">🔊</label>
+      <label class="form-check-label ms-0" style="font-size: 1.2em; position: relative; left: -0.5em; top: -0.2em; filter: grayscale(100%);" for="switcherAudioMode">🔊</label>
     </div>
     <div class="form-check form-switch mt-1 float-start" style="font-size: 0.8em; position: relative; top: -0.2em; opacity: 0.7; filter: grayscale(100%);">
       <input class="form-check-input" type="checkbox" role="switch" id="switcherNetworkMode" disabled>
-      <label class="form-check-label me-2 ms-0" style="font-size: 1.2em; position: relative; left: -0.3em; top: -0.2em !important;" for="switcherNetworkMode">&#128225;</label>
+      <label class="form-check-label ms-0" style="font-size: 1.2em; position: relative; left: -0.6em; top: -0.2em !important;" for="switcherNetworkMode">&#128225;</label>
     </div>
     <div class="form-check form-switch float-sm-start float-start mt-1" style="font-size: 0.8em; position: relative; top: -0.2em;">
       <input class="form-check-input" type="checkbox" role="switch" id="switcherPTPMode">
-      <label class="form-check-label me-1 ms-0" for="switcherPTPMode">PTP</label>
+      <label class="form-check-label ms-0" style="position: relative; left: -0.5em;" for="switcherPTPMode">PTP</label>
     </div>
     <a id="btnUsbModemSettings" class="btn btn-sm btn-outline-secondary mt-0 p-0"
        href="intent:#Intent;action=android.settings.SETTINGS;end">set USB<br>modem</a>
@@ -687,7 +694,7 @@
 
     <button id="btnUpdateVersion" type="button" class="btn btn-outline-secondary text-warning fw-bold float-end d-none"><span>&#10227;</span></button>
     <button id="labelVersion" class="btn btn-outline m-0 p-0 position-relative float-end"
-            style="font-size: 0.6em !important; color: gray">v.1.0.0</button>
+            style="font-size: 0.6em !important; color: gray">v.?.?.?</button>
   </div>
 
 </body>
