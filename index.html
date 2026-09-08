@@ -72,7 +72,7 @@
       color: white;
       font-size: 0.6em;
       line-height: 0.8em;
-      margin-left: 0.8em !important;
+      margin: 0 0.8em !important;
       padding: 0.3em 0.3em 0.2em !important;
       border-width: 1px !important;
       border-style: dotted;
@@ -152,6 +152,12 @@
     }
     #inpCurrentPassword:focus {
       border-left-width: 1px !important;
+    }
+    #btnCloseInfo {
+      position: absolute;
+      z-index: 1;
+      top: 0.48em;
+      right: 4.6em;
     }
     .carousel-control-next, .carousel-control-prev {
       background-color: lightgreen !important;
@@ -301,6 +307,7 @@
   <div id="whatTheArea" class="d-none mt-1">
     <div id="infoCarousel" class="carousel slide">
       <div class="carousel-inner">
+        <button id="btnCloseInfo" data-bs-target="#btnShowHelp" class="btn btn-outline-secondary btn-close"></button>
         <div class="carousel-item active">
           <div class="card">
             <div class="card-body m-0 p-2 pt-1" style="font-size: 0.7em">
@@ -675,8 +682,8 @@
     </div>
     <a id="btnUsbModemSettings" class="btn btn-sm btn-outline-secondary mt-0 p-0"
        href="intent:#Intent;action=android.settings.SETTINGS;end">set USB<br>modem</a>
-    <button id="btnShowHelp" class="btn p-0 m-0 ms-1 pe-1 btn-outline" type="button" data-bs-target="#whatTheArea"
-            style="font-size: 1.2em; opacity: 0.9; filter: grayscale(100%); position: relative; top: -0.14em" >&#128214;</button>
+    <button id="btnShowHelp" class="btn p-0 m-0 btn-outline" type="button" data-bs-target="#whatTheArea"
+            style="font-size: 1.2em; opacity: 0.9; filter: grayscale(100%); position: relative; top: -0.14em; height: 1.4em">&#128214;</button>
 
     <button id="btnUpdateVersion" class="btn btn-outline-secondary text-warning fw-bold float-end d-none" type="button"><span>&#10227;</span></button>
     <button id="labelVersion" class="btn btn-outline m-0 me-1 ms-2 p-0 float-end"

@@ -867,6 +867,7 @@ function prepareControls() {
   }
   btnSettings.click(showHideArea);
   btnShowHelp.click(showHideArea);
+  $('#btnCloseInfo').click(() => btnShowHelp.click());
 
   function autoGenerateNewPasswordInTheInput() {
     let newKey = TOTP6.generatePassword(8);
