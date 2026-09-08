@@ -1001,6 +1001,7 @@ function prepareControls() {
             if (vers !== cacheNames[0]) {
               labelVersion.addClass('text-warning');
               labelVersion.css('font-size', '0.8em');
+              labelVersion.css('top', '-0.6em');
               btnUpdateVersion.removeClass('d-none');
               btnUpdateVersion.click(function () {
                 caches.delete(cacheNames);
